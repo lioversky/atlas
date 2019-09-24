@@ -797,7 +797,9 @@
         <module>addons/impala-hook-api</module>
         <module>addons/impala-bridge-shim</module>
         <module>addons/impala-bridge</module>
-
+        <module>addons/elasticsearch-bridge</module>
+        <module>addons/pinot-bridge</module>
+        <module>addons/databus-process</module>
         <module>distro</module>
     </modules>
 
