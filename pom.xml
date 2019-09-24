@@ -799,7 +799,6 @@
         <module>addons/impala-bridge</module>
         <module>addons/elasticsearch-bridge</module>
         <module>addons/pinot-bridge</module>
-        <module>addons/databus-process</module>
         <module>distro</module>
     </modules>
 
