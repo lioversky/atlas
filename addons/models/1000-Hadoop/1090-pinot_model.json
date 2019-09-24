@@ -1,0 +1,362 @@
+{
+  "enumDefs": [],
+  "structDefs": [],
+  "classificationDefs": [],
+  "entityDefs": [
+    {
+      "name": "pinot_table",
+      "superTypes": [
+        "DataSet"
+      ],
+      "serviceType": "pinot",
+      "typeVersion": "1.0",
+      "attributeDefs": [
+        {
+          "name": "realtime.tableName",
+          "typeName": "string",
+          "cardinality": "SINGLE",
+          "isIndexable": false,
+          "isOptional": true,
+          "isUnique": false
+        },
+        {
+          "name": "realtime.segmentsConfig.retentionTimeUnit",
+          "typeName": "string",
+          "cardinality": "SINGLE",
+          "isIndexable": false,
+          "isOptional": true,
+          "isUnique": false
+        },
+        {
+          "name": "realtime.segmentsConfig.segmentPushFrequency",
+          "typeName": "string",
+          "cardinality": "SINGLE",
+          "isIndexable": false,
+          "isOptional": true,
+          "isUnique": false
+        },
+        {
+          "name": "realtime.segmentsConfig.replication",
+          "typeName": "string",
+          "cardinality": "SINGLE",
+          "isIndexable": false,
+          "isOptional": true,
+          "isUnique": false
+        },
+        {
+          "name": "realtime.segmentsConfig.retentionTimeValue",
+          "typeName": "string",
+          "cardinality": "SINGLE",
+          "isIndexable": false,
+          "isOptional": true,
+          "isUnique": false
+        },
+        {
+          "name": "realtime.segmentsConfig.segmentPushType",
+          "typeName": "string",
+          "cardinality": "SINGLE",
+          "isIndexable": false,
+          "isOptional": true,
+          "isUnique": false
+        },
+        {
+          "name": "realtime.segmentsConfig.segmentAssignmentStrategy",
+          "typeName": "string",
+          "cardinality": "SINGLE",
+          "isIndexable": false,
+          "isOptional": true,
+          "isUnique": false
+        },
+        {
+          "name": "realtime.segmentsConfig.replicasPerPartition",
+          "typeName": "string",
+          "cardinality": "SINGLE",
+          "isIndexable": false,
+          "isOptional": true,
+          "isUnique": false
+        },
+        {
+          "name": "offline.tableName",
+          "typeName": "string",
+          "cardinality": "SINGLE",
+          "isIndexable": false,
+          "isOptional": true,
+          "isUnique": false
+        },
+        {
+          "name": "offline.segmentsConfig.retentionTimeUnit",
+          "typeName": "string",
+          "cardinality": "SINGLE",
+          "isIndexable": false,
+          "isOptional": true,
+          "isUnique": false
+        },
+        {
+          "name": "offline.segmentsConfig.segmentPushFrequency",
+          "typeName": "string",
+          "cardinality": "SINGLE",
+          "isIndexable": false,
+          "isOptional": true,
+          "isUnique": false
+        },
+        {
+          "name": "offline.segmentsConfig.replication",
+          "typeName": "string",
+          "cardinality": "SINGLE",
+          "isIndexable": false,
+          "isOptional": true,
+          "isUnique": false
+        },
+        {
+          "name": "offline.segmentsConfig.retentionTimeValue",
+          "typeName": "string",
+          "cardinality": "SINGLE",
+          "isIndexable": false,
+          "isOptional": true,
+          "isUnique": false
+        },
+        {
+          "name": "offline.segmentsConfig.segmentPushType",
+          "typeName": "string",
+          "cardinality": "SINGLE",
+          "isIndexable": false,
+          "isOptional": true,
+          "isUnique": false
+        },
+        {
+          "name": "offline.segmentsConfig.segmentAssignmentStrategy",
+          "typeName": "string",
+          "cardinality": "SINGLE",
+          "isIndexable": false,
+          "isOptional": true,
+          "isUnique": false
+        },
+        {
+          "name": "offline.segmentsConfig.replicasPerPartition",
+          "typeName": "string",
+          "cardinality": "SINGLE",
+          "isIndexable": false,
+          "isOptional": true,
+          "isUnique": false
+        },
+        {
+          "name": "dimensionFieldSpecs",
+          "typeName": "array<pinot_dimension_field>",
+          "cardinality": "SET",
+          "constraints": [
+            {
+              "type": "ownedRef"
+            }
+          ],
+          "isIndexable": false,
+          "isOptional": true,
+          "isUnique": false
+        },
+        {
+          "name": "metricFieldSpecs",
+          "typeName": "array<pinot_metric_field>",
+          "cardinality": "SET",
+          "constraints": [
+            {
+              "type": "ownedRef"
+            }
+          ],
+          "isIndexable": false,
+          "isOptional": true,
+          "isUnique": false
+        },
+        {
+          "name": "timeField",
+          "typeName": "pinot_time_field",
+          "cardinality": "SINGLE",
+          "isIndexable": false,
+          "isOptional": false,
+          "isUnique": false
+        }
+      ]
+    },
+    {
+      "name": "pinot_dimension_field",
+      "superTypes": [
+        "DataSet"
+      ],
+      "attributeDefs": [
+        {
+          "name": "table",
+          "typeName": "pinot_table",
+          "cardinality": "SINGLE",
+          "isIndexable": false,
+          "isOptional": false,
+          "isUnique": false,
+          "constraints": [
+            {
+              "type": "inverseRef",
+              "params": {
+                "attribute": "dimensionFieldSpecs"
+              }
+            }
+          ]
+        },
+        {
+          "name": "dataType",
+          "typeName": "string",
+          "cardinality": "SINGLE",
+          "isIndexable": false,
+          "isOptional": false,
+          "isUnique": false
+        },
+        {
+          "name": "singleValueField",
+          "typeName": "string",
+          "cardinality": "SINGLE",
+          "isIndexable": false,
+          "isOptional": true,
+          "isUnique": false
+        }
+      ],
+      "serviceType": "pinot",
+      "typeVersion": "1.0"
+    },
+    {
+      "name": "pinot_metric_field",
+      "superTypes": [
+        "DataSet"
+      ],
+      "attributeDefs": [
+        {
+          "name": "table",
+          "typeName": "pinot_table",
+          "cardinality": "SINGLE",
+          "isIndexable": false,
+          "isOptional": false,
+          "isUnique": false,
+          "constraints": [
+            {
+              "type": "inverseRef",
+              "params": {
+                "attribute": "metricFieldSpecs"
+              }
+            }
+          ]
+        },
+        {
+          "name": "dataType",
+          "typeName": "string",
+          "cardinality": "SINGLE",
+          "isIndexable": false,
+          "isOptional": false,
+          "isUnique": false
+        }
+      ],
+      "serviceType": "pinot",
+      "typeVersion": "1.0"
+    },
+    {
+      "name": "pinot_time_field",
+      "superTypes": [
+        "DataSet"
+      ],
+      "attributeDefs": [
+        {
+          "name": "table",
+          "typeName": "pinot_table",
+          "cardinality": "SINGLE",
+          "isIndexable": false,
+          "isOptional": false,
+          "isUnique": false,
+          "constraints": [
+            {
+              "type": "inverseRef",
+              "params": {
+                "attribute": "metricFieldSpecs"
+              }
+            }
+          ]
+        },
+        {
+          "name": "dataType",
+          "typeName": "string",
+          "cardinality": "SINGLE",
+          "isIndexable": false,
+          "isOptional": false,
+          "isUnique": false
+        },
+        {
+          "name": "timeType",
+          "typeName": "string",
+          "cardinality": "SINGLE",
+          "isIndexable": false,
+          "isOptional": true,
+          "isUnique": false
+        }
+      ],
+      "serviceType": "pinot",
+      "typeVersion": "1.1"
+    }
+  ],
+  "relationshipDefs": [
+    {
+      "name": "pinot_table_dimension",
+      "serviceType": "pinot",
+      "typeVersion": "1.0",
+      "relationshipCategory": "COMPOSITION",
+      "endDef1": {
+        "type": "pinot_table",
+        "name": "dimensionFieldSpecs",
+        "isContainer": true,
+        "cardinality": "SET",
+        "isLegacyAttribute": true
+      },
+      "endDef2": {
+        "type": "pinot_dimension_field",
+        "name": "table",
+        "isContainer": false,
+        "cardinality": "SINGLE",
+        "isLegacyAttribute": true
+      },
+      "propagateTags": "NONE"
+    },
+    {
+      "name": "pinot_table_metric",
+      "serviceType": "pinot",
+      "typeVersion": "1.0",
+      "relationshipCategory": "COMPOSITION",
+      "endDef1": {
+        "type": "pinot_table",
+        "name": "metricFieldSpecs",
+        "isContainer": true,
+        "cardinality": "SET",
+        "isLegacyAttribute": true
+      },
+      "endDef2": {
+        "type": "pinot_metric_field",
+        "name": "table",
+        "isContainer": false,
+        "cardinality": "SINGLE",
+        "isLegacyAttribute": true
+      },
+      "propagateTags": "NONE"
+    },
+    {
+      "name": "pinot_table_timeField",
+      "serviceType": "pinot",
+      "typeVersion": "1.1",
+      "relationshipCategory": "COMPOSITION",
+      "endDef1": {
+        "type": "pinot_table",
+        "name": "timeField",
+        "isContainer": false,
+        "cardinality": "SINGLE",
+        "isLegacyAttribute": true
+      },
+      "endDef2": {
+        "type": "pinot_time_field",
+        "name": "table",
+        "isContainer": true,
+        "cardinality": "SINGLE",
+        "isLegacyAttribute": true
+      },
+      "propagateTags": "NONE"
+    }
+  ]
+}
