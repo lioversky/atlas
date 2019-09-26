@@ -268,7 +268,7 @@
             {
               "type": "inverseRef",
               "params": {
-                "attribute": "metricFieldSpecs"
+                "attribute": "timeField"
               }
             }
           ]
