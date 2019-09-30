@@ -173,7 +173,10 @@
           "isOptional": false,
           "isUnique": false
         }
-      ]
+      ],
+      "options": {
+        "schemaElementsAttribute": "metricFieldSpecs"
+      }
     },
     {
       "name": "pinot_dimension_field",
@@ -249,7 +252,10 @@
         }
       ],
       "serviceType": "pinot",
-      "typeVersion": "1.0"
+      "typeVersion": "1.0",
+      "options": {
+        "schemaAttributes": "[\"name\", \"dataType\"]"
+      }
     },
     {
       "name": "pinot_time_field",

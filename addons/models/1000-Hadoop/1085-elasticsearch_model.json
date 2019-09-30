@@ -147,7 +147,10 @@
           "isOptional": true,
           "isUnique": false
         }
-      ]
+      ],
+      "options": {
+        "schemaElementsAttribute": "fields"
+      }
     },
     {
       "name": "elasticsearch_field",
@@ -197,7 +200,10 @@
         }
       ],
       "serviceType": "elasticsearch",
-      "typeVersion": "1.0"
+      "typeVersion": "1.0",
+      "options": {
+        "schemaAttributes": "[\"index_type\", \"name\", \"type\"]"
+      }
     }
   ],
   "relationshipDefs": [
