@@ -89,6 +89,14 @@
           "isUnique": true
         },
         {
+          "name": "metrics",
+          "typeName": "map<string,long>",
+          "cardinality": "SINGLE",
+          "isIndexable": false,
+          "isOptional": true,
+          "isUnique": false
+        },
+        {
           "name": "id",
           "typeName": "string",
           "cardinality": "SINGLE",
@@ -323,46 +331,6 @@
           "cardinality": "SINGLE",
           "isIndexable": false,
           "isOptional": false,
-          "isUnique": false
-        },
-        {
-          "name": "write.numOutputBytes",
-          "typeName": "long",
-          "cardinality": "SINGLE",
-          "isIndexable": false,
-          "isOptional": true,
-          "isUnique": false
-        },
-        {
-          "name": "write.numOutputRows",
-          "typeName": "long",
-          "cardinality": "SINGLE",
-          "isIndexable": false,
-          "isOptional": true,
-          "isUnique": false
-        },
-        {
-          "name": "write.numFiles",
-          "typeName": "long",
-          "cardinality": "SINGLE",
-          "isIndexable": false,
-          "isOptional": true,
-          "isUnique": false
-        },
-        {
-          "name": "write.numParts",
-          "typeName": "long",
-          "cardinality": "SINGLE",
-          "isIndexable": false,
-          "isOptional": true,
-          "isUnique": false
-        },
-        {
-          "name": "read.numOutputRows",
-          "typeName": "long",
-          "cardinality": "SINGLE",
-          "isIndexable": false,
-          "isOptional": true,
           "isUnique": false
         }
       ]
