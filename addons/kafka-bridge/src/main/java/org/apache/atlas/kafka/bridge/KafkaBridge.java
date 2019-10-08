@@ -95,12 +95,23 @@ public class KafkaBridge {
             Options options = new Options();
             options.addOption("t","topic", true, "topic");
             options.addOption("f", "filename", true, "filename");
+            options.addOption("c", "conf", true, "configfile");
 
             CommandLineParser parser        = new BasicParser();
             CommandLine       cmd           = parser.parse(options, args);
             String            topicToImport = cmd.getOptionValue("t");
             String            fileToImport  = cmd.getOptionValue("f");
-            Configuration     atlasConf     = ApplicationProperties.get();
+            String            confFile  = cmd.getOptionValue("c");
+
+            Configuration atlasConf;
+            if (confFile != null && !"".equals(confFile)) {
+                File conf = new File(confFile);
+                System.setProperty(ApplicationProperties.ATLAS_CONFIGURATION_DIRECTORY_PROPERTY,
+                    conf.getCanonicalFile().getParent());
+                atlasConf = ApplicationProperties.get(conf.getName());
+            } else {
+                atlasConf = ApplicationProperties.get();
+            }
             String[]          urls          = atlasConf.getStringArray(ATLAS_ENDPOINT);
 
             if (urls == null || urls.length == 0) {
@@ -211,14 +222,20 @@ public class KafkaBridge {
 
             topicEntity = createEntityInAtlas(new AtlasEntityWithExtInfo(entity));
         } else {
-            System.out.println("Updating Kafka topic "  + topic);
-            LOG.info("Kafka topic {} already exists in Atlas. Updating it..", topicQualifiedName);
+            Integer partitionCount = (Integer) zkUtils.getTopicPartitionCount(topic).get();
+            if (((Number) topicEntity.getEntity().getAttributes().get(PARTITION_COUNT)).intValue()
+                != partitionCount) {
 
-            AtlasEntity entity = getTopicEntity(topic, topicEntity.getEntity());
+                System.out.println("Updating Kafka topic " + topic);
+                LOG.info("Kafka topic {} already exists in Atlas. Updating it..",
+                    topicQualifiedName);
 
-            topicEntity.setEntity(entity);
+                AtlasEntity entity = getTopicEntity(topic, topicEntity.getEntity());
 
-            topicEntity = updateEntityInAtlas(topicEntity);
+                topicEntity.setEntity(entity);
+
+                topicEntity = updateEntityInAtlas(topicEntity);
+            }
         }
 
         return topicEntity;
@@ -240,7 +257,6 @@ public class KafkaBridge {
         ret.setAttribute(CLUSTERNAME, metadataNamespace);
         ret.setAttribute(TOPIC, topic);
         ret.setAttribute(NAME,topic);
-        ret.setAttribute(DESCRIPTION_ATTR, topic);
         ret.setAttribute(URI, topic);
         ret.setAttribute(PARTITION_COUNT, (Integer) zkUtils.getTopicPartitionCount(topic).get());
 

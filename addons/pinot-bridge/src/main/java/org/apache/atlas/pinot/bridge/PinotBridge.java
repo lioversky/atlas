@@ -139,12 +139,23 @@ public class PinotBridge {
       Options options = new Options();
       options.addOption("t", "table", true, "table");
       options.addOption("f", "filename", true, "filename");
+      options.addOption("c", "conf", true, "configfile");
 
       CommandLineParser parser = new BasicParser();
       CommandLine cmd = parser.parse(options, args);
       String tableToImport = cmd.getOptionValue("t");
       String fileToImport = cmd.getOptionValue("f");
-      Configuration atlasConf = ApplicationProperties.get();
+      String confFile = cmd.getOptionValue("c");
+
+      Configuration atlasConf;
+      if (confFile != null && !"".equals(confFile)) {
+        File conf = new File(confFile);
+        System.setProperty(ApplicationProperties.ATLAS_CONFIGURATION_DIRECTORY_PROPERTY,
+            conf.getCanonicalFile().getParent());
+        atlasConf = ApplicationProperties.get(conf.getName());
+      } else {
+        atlasConf = ApplicationProperties.get();
+      }
       String[] urls = atlasConf.getStringArray(ATLAS_ENDPOINT);
 
       if (urls == null || urls.length == 0) {

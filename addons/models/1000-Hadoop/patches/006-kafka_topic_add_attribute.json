@@ -16,6 +16,14 @@
           "isIndexable": true,
           "isOptional": true,
           "isUnique": false
+        },
+        {
+          "name": "clusterName",
+          "typeName": "string",
+          "cardinality": "SINGLE",
+          "isIndexable": false,
+          "isOptional": true,
+          "isUnique": false
         }
       ]
     }

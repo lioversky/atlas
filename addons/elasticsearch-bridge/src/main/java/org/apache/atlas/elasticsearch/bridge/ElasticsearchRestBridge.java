@@ -136,7 +136,8 @@ public class ElasticsearchRestBridge {
   private WebResource service;
   private Pattern[] suxfixPatterns;
 
-  public ElasticsearchRestBridge(Configuration configuration, AtlasClientV2 atlasClientV2) {
+  public ElasticsearchRestBridge(Configuration configuration, AtlasClientV2 atlasClientV2,
+      String[] userInfo) {
     this.clusterName = configuration.getString(ELASTICSEARCH_CLUSTER_NAME, DEFAULT_CLUSTER_NAME);
     this.atlasClientV2 = atlasClientV2;
 
@@ -145,7 +146,6 @@ public class ElasticsearchRestBridge {
     this.client = new Client();
     client.setReadTimeout(readTimeout);
     client.setConnectTimeout(connectTimeout);
-    String[] userInfo = getEsRestUserInfo();
     final HTTPBasicAuthFilter authFilter = new HTTPBasicAuthFilter(userInfo[0], userInfo[1]);
     client.addFilter(authFilter);
     String esAddress = configuration.getString(ES_REST_ADDRESS, DEFAULT_ES_REST_ADDRESS);
@@ -159,7 +159,11 @@ public class ElasticsearchRestBridge {
     }
   }
 
-  private String[] getEsRestUserInfo() {
+  public ElasticsearchRestBridge(Configuration configuration, AtlasClientV2 atlasClientV2) {
+    this(configuration, atlasClientV2, getEsRestUserInfo());
+  }
+
+  private static String[] getEsRestUserInfo() {
     String username = null;
     String password = null;
 
@@ -191,12 +195,23 @@ public class ElasticsearchRestBridge {
       Options options = new Options();
       options.addOption("", "index", true, "index");
       options.addOption("f", "filename", true, "filename");
+      options.addOption("c", "conf", true, "configfile");
 
       CommandLineParser parser = new BasicParser();
       CommandLine cmd = parser.parse(options, args);
       String indexToImport = cmd.getOptionValue("i");
       String fileToImport = cmd.getOptionValue("f");
-      Configuration atlasConf = ApplicationProperties.get();
+      String confFile = cmd.getOptionValue("c");
+
+      Configuration atlasConf;
+      if (confFile != null && !"".equals(confFile)) {
+        File conf = new File(confFile);
+        System.setProperty(ApplicationProperties.ATLAS_CONFIGURATION_DIRECTORY_PROPERTY,
+            conf.getCanonicalFile().getParent());
+        atlasConf = ApplicationProperties.get(conf.getName());
+      } else {
+        atlasConf = ApplicationProperties.get();
+      }
       String[] urls = atlasConf.getStringArray(ATLAS_ENDPOINT);
 
       if (urls == null || urls.length == 0) {
@@ -325,7 +340,7 @@ public class ElasticsearchRestBridge {
           }
         };
         Collections.sort(infoList, comparator);
-
+        //获取index对应mapping信息
         infoList = getElasticsearchFields(prefix, infoList);
         for (IndexInfo info : infoList) {
 
@@ -349,6 +364,7 @@ public class ElasticsearchRestBridge {
 
   /**
    * 通过rest获取index mapping info.
+   * 如果在infoList中存在，但在mapping不存在，删除此index.
    *
    * @param prefix index prefix
    * @param infoList 要获取信息的索引
