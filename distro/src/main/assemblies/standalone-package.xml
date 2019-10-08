@@ -209,7 +209,31 @@
             <outputDirectory>bridge</outputDirectory>
         </fileSet>
         <fileSet>
-            <directory>../addons/kakfa-bridge/target/dependency/hook</directory>
+            <directory>../addons/kafka-bridge/target/dependency/hook</directory>
+            <outputDirectory>hook</outputDirectory>
+        </fileSet>
+
+        <!-- for es topic setup -->
+        <fileSet>
+            <directory>../addons/elasticsearch-bridge/src/bin</directory>
+            <outputDirectory>hook-bin</outputDirectory>
+            <fileMode>0755</fileMode>
+            <directoryMode>0755</directoryMode>
+        </fileSet>
+        <fileSet>
+            <directory>../addons/elasticsearch-bridge/target/dependency/hook</directory>
+            <outputDirectory>hook</outputDirectory>
+        </fileSet>
+
+        <!-- for pinot topic setup -->
+        <fileSet>
+            <directory>../addons/pinot-bridge/src/bin</directory>
+            <outputDirectory>hook-bin</outputDirectory>
+            <fileMode>0755</fileMode>
+            <directoryMode>0755</directoryMode>
+        </fileSet>
+        <fileSet>
+            <directory>../addons/pinot-bridge/target/dependency/hook</directory>
             <outputDirectory>hook</outputDirectory>
         </fileSet>
     </fileSets>

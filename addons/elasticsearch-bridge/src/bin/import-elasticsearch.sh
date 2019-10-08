@@ -72,19 +72,20 @@ TIME=`date +%Y%m%d%H%M%s`
 
 
 #Add hadoop conf in classpath
-if [ ! -z "$HADOOP_CLASSPATH" ]; then
-    HADOOP_CP=$HADOOP_CLASSPATH
-elif [ ! -z "$HADOOP_HOME" ]; then
-    HADOOP_CP=`$HADOOP_HOME/bin/hadoop classpath`
-elif [ $(command -v hadoop) ]; then
-    HADOOP_CP=`hadoop classpath`
-   #echo $HADOOP_CP
-else
-    echo "Environment variable HADOOP_CLASSPATH or HADOOP_HOME need to be set"
-    exit 1
-fi
+#if [ ! -z "$HADOOP_CLASSPATH" ]; then
+#    HADOOP_CP=$HADOOP_CLASSPATH
+#elif [ ! -z "$HADOOP_HOME" ]; then
+#    HADOOP_CP=`$HADOOP_HOME/bin/hadoop classpath`
+#elif [ $(command -v hadoop) ]; then
+#    HADOOP_CP=`hadoop classpath`
+#   #echo $HADOOP_CP
+#else
+#    echo "Environment variable HADOOP_CLASSPATH or HADOOP_HOME need to be set"
+#    exit 1
+#fi
 
-CP="${ATLASCPPATH}:${HADOOP_CP}"
+#CP="${ATLASCPPATH}:${HADOOP_CP}"
+CP="${ATLASCPPATH}"
 
 # If running in cygwin, convert pathnames and classpath to Windows format.
 if [ "${CYGWIN}" == "true" ]

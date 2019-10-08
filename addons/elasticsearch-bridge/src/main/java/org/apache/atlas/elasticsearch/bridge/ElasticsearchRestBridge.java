@@ -91,9 +91,14 @@ public class ElasticsearchRestBridge {
   private static final String FORMAT_ES_FIELD_QUALIFIED_NAME = "%s.%s@%s";
   private static final String ELASTICSEARCH_CLUSTER_NAME = "atlas.cluster.name";
 
+  private static final String ATLAS_REST_USERNAME = "atlas.rest.username";
+  private static final String ATLAS_REST_PASSWORD = "atlas.rest.password";
+
   // es rest url
   private static final String ES_REST_ADDRESS = "elasticsearch.rest.address";
   private static final String DEFAULT_ES_REST_ADDRESS = "http://localhost:9200";
+  private static final String ES_REST_USERNAME = "elasticsearch.rest.username";
+  private static final String ES_REST_PASSWORD = "elasticsearch.rest.password";
   private static final String ES_REST_INDICES = "_cat/indices";
   private static final String ES_REST_MAPPING_SETTINGS = "%s-*/_mappings,_settings";
   // es rest result json fields
@@ -135,6 +140,99 @@ public class ElasticsearchRestBridge {
   private final Client client;
   private WebResource service;
   private Pattern[] suxfixPatterns;
+
+  public static void main(String[] args) {
+    int exitCode = EXIT_CODE_FAILED;
+    AtlasClientV2 atlasClientV2 = null;
+
+    try {
+      Options options = new Options();
+      options.addOption("", "index", true, "index");
+      options.addOption("f", "filename", true, "filename");
+      options.addOption("c", "conf", true, "configfile");
+
+      CommandLineParser parser = new BasicParser();
+      CommandLine cmd = parser.parse(options, args);
+      String indexToImport = cmd.getOptionValue("i");
+      String fileToImport = cmd.getOptionValue("f");
+      String confFile = cmd.getOptionValue("c");
+
+      Configuration atlasConf;
+      if (confFile != null && !"".equals(confFile)) {
+        File conf = new File(confFile);
+        System.setProperty(ApplicationProperties.ATLAS_CONFIGURATION_DIRECTORY_PROPERTY,
+                conf.getCanonicalFile().getParent());
+        atlasConf = ApplicationProperties.get(conf.getName());
+      } else {
+        atlasConf = ApplicationProperties.get();
+      }
+      String[] urls = atlasConf.getStringArray(ATLAS_ENDPOINT);
+
+      if (urls == null || urls.length == 0) {
+        urls = new String[]{DEFAULT_ATLAS_URL};
+      }
+
+      String atlasUserName = atlasConf.getString(ATLAS_REST_USERNAME, null);
+      String atlasPassword = atlasConf.getString(ATLAS_REST_PASSWORD, null);
+      if (atlasUserName != null && atlasPassword != null) {
+        atlasClientV2 = new AtlasClientV2(urls, new String[]{atlasUserName, atlasPassword});
+      } else if (!AuthenticationUtil.isKerberosAuthenticationEnabled()) {
+        String[] basicAuthUsernamePassword = AuthenticationUtil.getBasicAuthenticationInput();
+
+        atlasClientV2 = new AtlasClientV2(urls, basicAuthUsernamePassword);
+      } else {
+        UserGroupInformation ugi = UserGroupInformation.getCurrentUser();
+
+        atlasClientV2 = new AtlasClientV2(ugi, ugi.getShortUserName(), urls);
+      }
+
+      String esUserName = atlasConf.getString(ES_REST_USERNAME, null);
+      String esPassword = atlasConf.getString(ES_REST_PASSWORD, null);
+      ElasticsearchRestBridge importer;
+      if (esUserName != null && esPassword != null) {
+        importer = new ElasticsearchRestBridge(atlasConf, atlasClientV2, new String[]{esUserName, esPassword});
+      } else {
+        importer = new ElasticsearchRestBridge(atlasConf, atlasClientV2);
+      }
+
+      if (StringUtils.isNotEmpty(fileToImport)) {
+        File f = new File(fileToImport);
+
+        if (f.exists() && f.canRead()) {
+          BufferedReader br = new BufferedReader(new FileReader(f));
+          String line = null;
+
+          while ((line = br.readLine()) != null) {
+            indexToImport = line.trim();
+
+            importer.importElasticsearchMetadata(indexToImport);
+          }
+
+          exitCode = EXIT_CODE_SUCCESS;
+        } else {
+          LOG.error("Failed to read the file");
+        }
+      } else {
+        importer.importElasticsearchMetadata(indexToImport);
+
+        exitCode = EXIT_CODE_SUCCESS;
+      }
+    } catch (ParseException e) {
+      LOG.error("Failed to parse arguments. Error: ", e.getMessage());
+      printUsage();
+    } catch (Exception e) {
+      System.out.println(
+              "ImportElasticsearchEntities failed. Please check the log file for the detailed error message");
+      e.printStackTrace();
+      LOG.error("ImportElasticsearchEntities failed", e);
+    } finally {
+      if (atlasClientV2 != null) {
+        atlasClientV2.close();
+      }
+    }
+    System.exit(exitCode);
+  }
+
 
   public ElasticsearchRestBridge(Configuration configuration, AtlasClientV2 atlasClientV2,
       String[] userInfo) {
@@ -185,87 +283,6 @@ public class ElasticsearchRestBridge {
     }
 
     return new String[]{username, password};
-  }
-
-  public static void main(String[] args) {
-    int exitCode = EXIT_CODE_FAILED;
-    AtlasClientV2 atlasClientV2 = null;
-
-    try {
-      Options options = new Options();
-      options.addOption("", "index", true, "index");
-      options.addOption("f", "filename", true, "filename");
-      options.addOption("c", "conf", true, "configfile");
-
-      CommandLineParser parser = new BasicParser();
-      CommandLine cmd = parser.parse(options, args);
-      String indexToImport = cmd.getOptionValue("i");
-      String fileToImport = cmd.getOptionValue("f");
-      String confFile = cmd.getOptionValue("c");
-
-      Configuration atlasConf;
-      if (confFile != null && !"".equals(confFile)) {
-        File conf = new File(confFile);
-        System.setProperty(ApplicationProperties.ATLAS_CONFIGURATION_DIRECTORY_PROPERTY,
-            conf.getCanonicalFile().getParent());
-        atlasConf = ApplicationProperties.get(conf.getName());
-      } else {
-        atlasConf = ApplicationProperties.get();
-      }
-      String[] urls = atlasConf.getStringArray(ATLAS_ENDPOINT);
-
-      if (urls == null || urls.length == 0) {
-        urls = new String[]{DEFAULT_ATLAS_URL};
-      }
-
-      if (!AuthenticationUtil.isKerberosAuthenticationEnabled()) {
-        String[] basicAuthUsernamePassword = AuthenticationUtil.getBasicAuthenticationInput();
-
-        atlasClientV2 = new AtlasClientV2(urls, basicAuthUsernamePassword);
-      } else {
-        UserGroupInformation ugi = UserGroupInformation.getCurrentUser();
-
-        atlasClientV2 = new AtlasClientV2(ugi, ugi.getShortUserName(), urls);
-      }
-
-      ElasticsearchRestBridge importer = new ElasticsearchRestBridge(atlasConf, atlasClientV2);
-
-      if (StringUtils.isNotEmpty(fileToImport)) {
-        File f = new File(fileToImport);
-
-        if (f.exists() && f.canRead()) {
-          BufferedReader br = new BufferedReader(new FileReader(f));
-          String line = null;
-
-          while ((line = br.readLine()) != null) {
-            indexToImport = line.trim();
-
-            importer.importElasticsearchMetadata(indexToImport);
-          }
-
-          exitCode = EXIT_CODE_SUCCESS;
-        } else {
-          LOG.error("Failed to read the file");
-        }
-      } else {
-        importer.importElasticsearchMetadata(indexToImport);
-
-        exitCode = EXIT_CODE_SUCCESS;
-      }
-    } catch (ParseException e) {
-      LOG.error("Failed to parse arguments. Error: ", e.getMessage());
-      printUsage();
-    } catch (Exception e) {
-      System.out.println(
-          "ImportElasticsearchEntities failed. Please check the log file for the detailed error message");
-      e.printStackTrace();
-      LOG.error("ImportElasticsearchEntities failed", e);
-    } finally {
-      if (atlasClientV2 != null) {
-        atlasClientV2.close();
-      }
-    }
-    System.exit(exitCode);
   }
 
 

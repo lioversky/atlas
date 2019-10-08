@@ -70,54 +70,55 @@ LOGFILE="$ATLAS_LOG_DIR/import-kafka.log"
 TIME=`date +%Y%m%d%H%M%s`
 
 #Add Kafka conf in classpath
-if [ ! -z "$KAFKA_CONF_DIR" ]; then
-    KAFKA_CONF=$KAFKA_CONF_DIR
-elif [ ! -z "$KAFKA_HOME" ]; then
-    KAFKA_CONF="$KAFKA_HOME/conf"
-elif [ -e /etc/kafka/conf ]; then
-    KAFKA_CONF="/etc/kafka/conf"
-else
-    echo "Could not find a valid KAFKA configuration"
-    exit 1
-fi
-
-echo Using Kafka configuration directory "[$KAFKA_CONF]"
-
-
-if [ -f "${KAFKA_CONF}/kafka-env.sh" ]; then
-  . "${KAFKA_CONF}/kafka-env.sh"
-fi
-
-if [ -z "$KAFKA_HOME" ]; then
-    if [ -d "${BASEDIR}/../kafka" ]; then
-        KAFKA_HOME=${BASEDIR}/../kafka
-    else
-        echo "Please set KAFKA_HOME to the root of Kafka installation"
-        exit 1
-    fi
-fi
-
-KAFKA_CP="${KAFKA_CONF}"
-
-for i in "${KAFKA_HOME}/libs/"*.jar; do
-    KAFKA_CP="${KAFKA_CP}:$i"
-done
+#if [ ! -z "$KAFKA_CONF_DIR" ]; then
+#    KAFKA_CONF=$KAFKA_CONF_DIR
+#elif [ ! -z "$KAFKA_HOME" ]; then
+#    KAFKA_CONF="$KAFKA_HOME/conf"
+#elif [ -e /etc/kafka/conf ]; then
+#    KAFKA_CONF="/etc/kafka/conf"
+#else
+#    echo "Could not find a valid KAFKA configuration"
+#    exit 1
+#fi
+#
+#echo Using Kafka configuration directory "[$KAFKA_CONF]"
+#
+#
+#if [ -f "${KAFKA_CONF}/kafka-env.sh" ]; then
+#  . "${KAFKA_CONF}/kafka-env.sh"
+#fi
+#
+#if [ -z "$KAFKA_HOME" ]; then
+#    if [ -d "${BASEDIR}/../kafka" ]; then
+#        KAFKA_HOME=${BASEDIR}/../kafka
+#    else
+#        echo "Please set KAFKA_HOME to the root of Kafka installation"
+#        exit 1
+#    fi
+#fi
+#
+#KAFKA_CP="${KAFKA_CONF}"
+#
+#for i in "${KAFKA_HOME}/libs/"*.jar; do
+#    KAFKA_CP="${KAFKA_CP}:$i"
+#done
 
 
 #Add hadoop conf in classpath
-if [ ! -z "$HADOOP_CLASSPATH" ]; then
-    HADOOP_CP=$HADOOP_CLASSPATH
-elif [ ! -z "$HADOOP_HOME" ]; then
-    HADOOP_CP=`$HADOOP_HOME/bin/hadoop classpath`
-elif [ $(command -v hadoop) ]; then
-    HADOOP_CP=`hadoop classpath`
-   #echo $HADOOP_CP
-else
-    echo "Environment variable HADOOP_CLASSPATH or HADOOP_HOME need to be set"
-    exit 1
-fi
+#if [ ! -z "$HADOOP_CLASSPATH" ]; then
+#    HADOOP_CP=$HADOOP_CLASSPATH
+#elif [ ! -z "$HADOOP_HOME" ]; then
+#    HADOOP_CP=`$HADOOP_HOME/bin/hadoop classpath`
+#elif [ $(command -v hadoop) ]; then
+#    HADOOP_CP=`hadoop classpath`
+#   #echo $HADOOP_CP
+#else
+#    echo "Environment variable HADOOP_CLASSPATH or HADOOP_HOME need to be set"
+#    exit 1
+#fi
 
-CP="${ATLASCPPATH}:${HADOOP_CP}:${KAFKA_CP}"
+#CP="${ATLASCPPATH}:${HADOOP_CP}:${KAFKA_CP}"
+CP="${ATLASCPPATH}"
 
 # If running in cygwin, convert pathnames and classpath to Windows format.
 if [ "${CYGWIN}" == "true" ]

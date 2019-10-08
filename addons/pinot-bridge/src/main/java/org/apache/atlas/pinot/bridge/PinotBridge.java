@@ -80,6 +80,9 @@ public class PinotBridge {
   private static final String FIELD_ATTR_SINGLEVALUEFIELD = "singleValueField";
   private static final String FIELD_ATTR_INCOMING = "incomingGranularitySpec";
 
+  private static final String ATLAS_REST_USERNAME = "atlas.rest.username";
+  private static final String ATLAS_REST_PASSWORD = "atlas.rest.password";
+
   private static final String HTTP_ACCEPT = "application/json";
   private static final String PINOT_JSON_TABLES = "tables";
   private static final String PINOT_JSON_REALTIME = "REALTIME";
@@ -162,7 +165,11 @@ public class PinotBridge {
         urls = new String[]{DEFAULT_ATLAS_URL};
       }
 
-      if (!AuthenticationUtil.isKerberosAuthenticationEnabled()) {
+      String atlasUserName = atlasConf.getString(ATLAS_REST_USERNAME, null);
+      String atlasPassword = atlasConf.getString(ATLAS_REST_PASSWORD, null);
+      if (atlasUserName != null && atlasPassword != null) {
+        atlasClientV2 = new AtlasClientV2(urls, new String[]{atlasUserName, atlasPassword});
+      } else if (!AuthenticationUtil.isKerberosAuthenticationEnabled()) {
         String[] basicAuthUsernamePassword = AuthenticationUtil.getBasicAuthenticationInput();
 
         atlasClientV2 = new AtlasClientV2(urls, basicAuthUsernamePassword);

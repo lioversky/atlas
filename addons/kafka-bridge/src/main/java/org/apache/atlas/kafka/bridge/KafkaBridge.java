@@ -81,6 +81,9 @@ public class KafkaBridge {
     private static final int    DEFAULT_ZOOKEEPER_SESSION_TIMEOUT_MS    = 10 * 1000;
     private static final int    DEFAULT_ZOOKEEPER_CONNECTION_TIMEOUT_MS = 10 * 1000;
 
+    private static final String ATLAS_REST_USERNAME = "atlas.rest.username";
+    private static final String ATLAS_REST_PASSWORD = "atlas.rest.password";
+
     private final List<String>  availableTopics;
     private final String        metadataNamespace;
     private final AtlasClientV2 atlasClientV2;
@@ -118,8 +121,11 @@ public class KafkaBridge {
                 urls = new String[] { DEFAULT_ATLAS_URL };
             }
 
-
-            if (!AuthenticationUtil.isKerberosAuthenticationEnabled()) {
+            String atlasUserName = atlasConf.getString(ATLAS_REST_USERNAME, null);
+            String atlasPassword = atlasConf.getString(ATLAS_REST_PASSWORD, null);
+            if (atlasUserName != null && atlasPassword != null) {
+                atlasClientV2 = new AtlasClientV2(urls, new String[]{atlasUserName, atlasPassword});
+            } else if (!AuthenticationUtil.isKerberosAuthenticationEnabled()) {
                 String[] basicAuthUsernamePassword = AuthenticationUtil.getBasicAuthenticationInput();
 
                 atlasClientV2 = new AtlasClientV2(urls, basicAuthUsernamePassword);
