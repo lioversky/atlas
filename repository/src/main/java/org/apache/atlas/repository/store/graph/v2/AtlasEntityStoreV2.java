@@ -59,6 +59,7 @@ import static java.lang.Boolean.FALSE;
 import static org.apache.atlas.model.instance.EntityMutations.EntityOperation.DELETE;
 import static org.apache.atlas.model.instance.EntityMutations.EntityOperation.UPDATE;
 import static org.apache.atlas.repository.Constants.IS_INCOMPLETE_PROPERTY_KEY;
+import static org.apache.atlas.repository.graph.GraphHelper.getCustomAttributes;
 import static org.apache.atlas.repository.graph.GraphHelper.isEntityIncomplete;
 
 
@@ -814,6 +815,15 @@ public class AtlasEntityStoreV2 implements AtlasEntityStore {
                         }
                     }
 
+                    if (!hasUpdates && entity.getCustomAttributes() != null) {
+                        Map<String, String> currCustomAttributes = getCustomAttributes(vertex);
+                        Map<String, String> newCustomAttributes  = entity.getCustomAttributes();
+
+                        if (!Objects.equals(currCustomAttributes, newCustomAttributes)) {
+                            hasUpdates = true;
+                        }
+                    }
+
                     // if classifications are to be replaced, then skip updates only when no change in classifications
                     if (!hasUpdates && replaceClassifications) {
                         List<AtlasClassification> newVal  = entity.getClassifications();
@@ -921,6 +931,8 @@ public class AtlasEntityStoreV2 implements AtlasEntityStore {
                         requestContext.recordEntityGuidUpdate(entity, guid);
                     }
 
+                    entityGraphMapper.setCustomAttributes(vertex, entity);
+
                     context.addUpdated(guid, entity, entityType, vertex);
                 } else {
                     graphDiscoverer.validateAndNormalize(entity);
@@ -959,9 +971,9 @@ public class AtlasEntityStoreV2 implements AtlasEntityStore {
 
                             context.addEntityToDelete(vertex);
                         } else if (currStatus == Status.DELETED && newStatus == Status.ACTIVE) {
-                            LOG.warn("attempt to activate deleted entity (guid={}). Ignored", guid);
-
-                            entity.setStatus(currStatus);
+                            LOG.warn("Import is attempting to activate deleted entity (guid={}).", guid);
+                            entityGraphMapper.importActivateEntity(vertex, entity);
+                            context.addCreated(guid, entity, entityType, vertex);
                         }
                     }
 

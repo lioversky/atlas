@@ -14,7 +14,6 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-
 /* theme.scss */
 
 body {
@@ -34,7 +33,6 @@ header.atlas-header {
             float: none;
             display: table-cell;
             padding: 0px 5px;
-
         }
     }
 
@@ -81,7 +79,14 @@ header.atlas-header {
     }
 }
 
+.sidebar-brand {
+    padding-left: 6px !important;
 
+    .logo {
+        height: 42px;
+        padding: 6px;
+    }
+}
 
 .main-search {
     .form-control {
@@ -102,7 +107,6 @@ header.atlas-header {
     }
 }
 
-
 .close {
     font-size: 2em;
 }
@@ -114,7 +118,6 @@ header.atlas-header {
         color: $white;
         font-size: 16px !important;
 
-
         .well {
             background: transparent;
             border: 1px solid #666363;
@@ -123,7 +126,6 @@ header.atlas-header {
         }
     }
 }
-
 
 .page-title {
     background-color: $color_white_lilac_approx;
@@ -218,7 +220,6 @@ a[href^="#!/"]:not(.btn, .not-blue-link) {
     @extend .blue-link;
 }
 
-
 th {
     text-transform: capitalize;
 }
@@ -258,9 +259,8 @@ hr[size="10"] {
 }
 
 .gray-bg {
-    background-color: $color_white_lilac_approx
+    background-color: $color_white_lilac_approx;
 }
-
 
 .comment-input {
     background-color: $color_white_lilac_approx;
@@ -287,7 +287,6 @@ hr[size="10"] {
         color: $color_star_dust_approx;
     }
 }
-
 
 @media (min-width: 768px) {
     .col-sm-custom {
@@ -453,7 +452,6 @@ hr[size="10"] {
         height: 50px;
     }
 }
-
 
 .ui-menu.ui-widget-content.ui-autocomplete {
     box-shadow: 0px 11px 30px -8px grey;
