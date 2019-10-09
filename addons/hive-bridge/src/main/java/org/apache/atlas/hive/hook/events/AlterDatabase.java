@@ -25,7 +25,7 @@ import org.apache.atlas.model.notification.HookNotification;
 import org.apache.atlas.model.notification.HookNotification.EntityUpdateRequestV2;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.hadoop.hive.metastore.api.Database;
-import org.apache.hadoop.hive.metastore.events.AlterDatabaseEvent;
+//import org.apache.hadoop.hive.metastore.events.AlterAlterDatabaseEvent;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -51,7 +51,7 @@ public class AlterDatabase extends CreateDatabase {
         return ret;
     }
 
-    public AtlasEntitiesWithExtInfo getHiveMetastoreEntities() throws Exception {
+    /*public AtlasEntitiesWithExtInfo getHiveMetastoreEntities() throws Exception {
         AtlasEntitiesWithExtInfo ret     = new AtlasEntitiesWithExtInfo();
         AlterDatabaseEvent       dbEvent = (AlterDatabaseEvent) context.getMetastoreEvent();
         Database                 oldDb   = dbEvent.getOldDatabase();
@@ -68,7 +68,7 @@ public class AlterDatabase extends CreateDatabase {
         addProcessedEntities(ret);
 
         return ret;
-    }
+    }*/
 
     public AtlasEntitiesWithExtInfo getHiveEntities() throws Exception {
         return super.getHiveEntities();

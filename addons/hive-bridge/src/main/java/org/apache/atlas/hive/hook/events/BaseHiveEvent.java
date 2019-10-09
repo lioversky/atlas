@@ -39,7 +39,7 @@ import org.apache.hadoop.hive.metastore.api.FieldSchema;
 import org.apache.hadoop.hive.metastore.api.Order;
 import org.apache.hadoop.hive.metastore.api.SerDeInfo;
 import org.apache.hadoop.hive.metastore.api.StorageDescriptor;
-import org.apache.hadoop.hive.metastore.utils.SecurityUtils;
+//import org.apache.hadoop.hive.metastore.utils.SecurityUtils;
 import org.apache.hadoop.hive.ql.hooks.*;
 import org.apache.hadoop.hive.ql.hooks.LineageInfo.BaseColumnInfo;
 import org.apache.hadoop.hive.ql.hooks.LineageInfo.DependencyKey;
@@ -789,7 +789,7 @@ public abstract class BaseHiveEvent {
 
         if (context.isMetastoreHook()) {
             try {
-                ugi = SecurityUtils.getUGI();
+                ugi = UserGroupInformation.getCurrentUser();
             } catch (Exception e) {
                 //do nothing
             }

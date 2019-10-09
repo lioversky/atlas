@@ -24,7 +24,7 @@ import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.hive.metastore.MetaStoreEventListener;
 import org.apache.hadoop.hive.metastore.api.FieldSchema;
 import org.apache.hadoop.hive.metastore.events.*;
-import org.apache.hadoop.hive.metastore.utils.SecurityUtils;
+//import org.apache.hadoop.hive.metastore.utils.SecurityUtils;
 import org.apache.hadoop.hive.ql.metadata.Table;
 import org.apache.hadoop.hive.ql.plan.HiveOperation;
 import org.apache.hadoop.hive.shims.Utils;
@@ -63,12 +63,12 @@ public class HiveMetastoreHookImpl extends MetaStoreEventListener {
         hook.handleEvent(context);
     }
 
-    @Override
+    /*@Override
     public void onAlterDatabase(AlterDatabaseEvent dbEvent) {
         HiveOperationContext context = new HiveOperationContext(ALTERDATABASE, dbEvent);
 
         hook.handleEvent(context);
-    }
+    }*/
 
     @Override
     public void onCreateTable(CreateTableEvent tableEvent) {
@@ -126,9 +126,9 @@ public class HiveMetastoreHookImpl extends MetaStoreEventListener {
                         event = new DropDatabase(context);
                         break;
 
-                    case ALTERDATABASE:
-                        event = new AlterDatabase(context);
-                        break;
+//                    case ALTERDATABASE:
+//                        event = new AlterDatabase(context);
+//                        break;
 
                     case CREATETABLE:
                         event = new CreateTable(context, true);
@@ -161,7 +161,7 @@ public class HiveMetastoreHookImpl extends MetaStoreEventListener {
                 }
 
                 if (event != null) {
-                    final UserGroupInformation ugi = SecurityUtils.getUGI() == null ? Utils.getUGI() : SecurityUtils.getUGI();
+                    final UserGroupInformation ugi = UserGroupInformation.getCurrentUser() == null ? Utils.getUGI() : UserGroupInformation.getCurrentUser();
 
                     super.notifyEntities(event.getNotificationMessages(), ugi);
                 }

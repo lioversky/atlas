@@ -94,14 +94,21 @@ public class HiveMetaStoreBridge {
     public static final String HDFS_PATH                       = "hdfs_path";
     public static final String DEFAULT_METASTORE_CATALOG       = "hive";
 
+    private static final String ATLAS_REST_USERNAME = "atlas.rest.username";
+    private static final String ATLAS_REST_PASSWORD = "atlas.rest.password";
+
     private static final int    EXIT_CODE_SUCCESS = 0;
     private static final int    EXIT_CODE_FAILED  = 1;
     private static final String DEFAULT_ATLAS_URL = "http://localhost:21000/";
+
+    private static final String HDFS_DATASET_PREFIX = "hdfs.dataset.prefix";
+    private static final String HDFS_DATASET = "dataset";
 
     private final String        metadataNamespace;
     private final Hive          hiveClient;
     private final AtlasClientV2 atlasClientV2;
     private final boolean       convertHdfsPathToLowerCase;
+    private String              datasetPrefix;
 
 
     public static void main(String[] args) {
@@ -114,24 +121,38 @@ public class HiveMetaStoreBridge {
             options.addOption("t", "table", true, "Table name");
             options.addOption("f", "filename", true, "Filename");
             options.addOption("failOnError", false, "failOnError");
+            options.addOption("c", "conf", true, "configfile");
 
             CommandLine   cmd              = new BasicParser().parse(options, args);
             boolean       failOnError      = cmd.hasOption("failOnError");
             String        databaseToImport = cmd.getOptionValue("d");
             String        tableToImport    = cmd.getOptionValue("t");
             String        fileToImport     = cmd.getOptionValue("f");
-            Configuration atlasConf        = ApplicationProperties.get();
+            String confFile = cmd.getOptionValue("c");
+
+            Configuration atlasConf;
+            if (confFile != null && !"".equals(confFile)) {
+                File conf = new File(confFile);
+                System.setProperty(ApplicationProperties.ATLAS_CONFIGURATION_DIRECTORY_PROPERTY,
+                    conf.getCanonicalFile().getParent());
+                atlasConf = ApplicationProperties.get(conf.getName());
+            } else {
+                atlasConf = ApplicationProperties.get();
+            }
             String[]      atlasEndpoint    = atlasConf.getStringArray(ATLAS_ENDPOINT);
 
             if (atlasEndpoint == null || atlasEndpoint.length == 0) {
                 atlasEndpoint = new String[] { DEFAULT_ATLAS_URL };
             }
+            String atlasUserName = atlasConf.getString(ATLAS_REST_USERNAME, null);
+            String atlasPassword = atlasConf.getString(ATLAS_REST_PASSWORD, null);
 
-
-            if (!AuthenticationUtil.isKerberosAuthenticationEnabled()) {
+            if (atlasUserName != null && atlasPassword != null) {
+                atlasClientV2 = new AtlasClientV2(atlasConf, atlasEndpoint, new String[]{atlasUserName, atlasPassword});
+            } else if (!AuthenticationUtil.isKerberosAuthenticationEnabled()) {
                 String[] basicAuthUsernamePassword = AuthenticationUtil.getBasicAuthenticationInput();
 
-                atlasClientV2 = new AtlasClientV2(atlasEndpoint, basicAuthUsernamePassword);
+                atlasClientV2 = new AtlasClientV2(atlasConf, atlasEndpoint, basicAuthUsernamePassword);
             } else {
                 UserGroupInformation ugi = UserGroupInformation.getCurrentUser();
 
@@ -216,6 +237,7 @@ public class HiveMetaStoreBridge {
         this.hiveClient                 = Hive.get(hiveConf);
         this.atlasClientV2              = atlasClientV2;
         this.convertHdfsPathToLowerCase = atlasProperties.getBoolean(HDFS_PATH_CONVERT_TO_LOWER_CASE, false);
+        this.datasetPrefix              = atlasProperties.getString(HDFS_DATASET_PREFIX, "");
     }
 
     /**
@@ -357,7 +379,13 @@ public class HiveMetaStoreBridge {
                 if (processEntity == null) {
                     String      tableLocation = isConvertHdfsPathToLowerCase() ? lower(table.getDataLocation().toString()) : table.getDataLocation().toString();
                     String      query         = getCreateTableString(table, tableLocation);
-                    AtlasEntity pathInst      = toHdfsPathEntity(tableLocation);
+                    Map<String, String> parameters = table.getParameters();
+                    AtlasEntity pathInst;
+                    if (parameters != null && parameters.containsKey(HDFS_DATASET)) {
+                        pathInst = toHdfsPathEntity(datasetPrefix + parameters.get(HDFS_DATASET));
+                    } else {
+                        pathInst = toHdfsPathEntity(tableLocation);
+                    }
                     AtlasEntity tableInst     = tableEntity.getEntity();
                     AtlasEntity processInst   = new AtlasEntity(HiveDataTypes.HIVE_PROCESS.getName());
                     long        now           = System.currentTimeMillis();
@@ -574,13 +602,13 @@ public class HiveMetaStoreBridge {
 
     public static String getDatabaseName(Database hiveDB) {
         String dbName      = hiveDB.getName().toLowerCase();
-        String catalogName = hiveDB.getCatalogName() != null ? hiveDB.getCatalogName().toLowerCase() : null;
+//        String catalogName = hiveDB.getCatalogName() != null ? hiveDB.getCatalogName().toLowerCase() : null;
+//
+//        if (StringUtils.isNotEmpty(catalogName) && !StringUtils.equals(catalogName, DEFAULT_METASTORE_CATALOG)) {
+//            dbName = catalogName + SEP + dbName;
+//        }
 
-        if (StringUtils.isNotEmpty(catalogName) && !StringUtils.equals(catalogName, DEFAULT_METASTORE_CATALOG)) {
-            dbName = catalogName + SEP + dbName;
-        }
-
-        return dbName;
+        return hiveDB.getName().toLowerCase();
     }
 
     /**

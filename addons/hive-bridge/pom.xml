@@ -41,12 +41,22 @@
             <groupId>org.slf4j</groupId>
             <artifactId>slf4j-log4j12</artifactId>
         </dependency>
+        <dependency>
+            <groupId>org.apache.hadoop</groupId>
+            <artifactId>hadoop-common</artifactId>
+            <version>2.8.2</version>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.hadoop</groupId>
+            <artifactId>hadoop-hdfs</artifactId>
+            <version>2.8.2</version>
+        </dependency>
 
         <dependency>
             <groupId>org.apache.hive</groupId>
             <artifactId>hive-metastore</artifactId>
-            <version>${hive.version}</version>
-            <scope>provided</scope>
+            <version>1.2.1</version>
+
             <exclusions>
                 <exclusion>
                     <groupId>org.mortbay.jetty</groupId>
@@ -63,8 +73,8 @@
         <dependency>
             <groupId>org.apache.hive</groupId>
             <artifactId>hive-exec</artifactId>
-            <version>${hive.version}</version>
-            <scope>provided</scope>
+            <version>1.2.1</version>
+
             <exclusions>
                 <exclusion>
                     <groupId>javax.servlet</groupId>
@@ -76,7 +86,7 @@
         <dependency>
             <groupId>org.apache.hive</groupId>
             <artifactId>hive-jdbc</artifactId>
-            <version>${hive.version}</version>
+            <version>1.2.1</version>
             <scope>test</scope>
             <exclusions>
                 <exclusion>
@@ -97,7 +107,7 @@
         <dependency>
             <groupId>org.apache.hive</groupId>
             <artifactId>hive-cli</artifactId>
-            <version>${hive.version}</version>
+            <version>1.2.1</version>
             <scope>test</scope>
             <exclusions>
                 <exclusion>
@@ -154,6 +164,7 @@
                     <artifactId>*</artifactId>
                 </exclusion>
             </exclusions>
+            <version>2.8.2</version>
         </dependency>
 
         <dependency>
