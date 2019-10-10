@@ -135,7 +135,7 @@ public class HiveMetaStoreBridge {
             String        databaseToImport = cmd.getOptionValue("d");
             String        tableToImport    = cmd.getOptionValue("t");
             String        fileToImport     = cmd.getOptionValue("f");
-            String confFile = cmd.getOptionValue("c");
+            String        confFile         = cmd.getOptionValue("c");
 
             Configuration atlasConf;
             if (confFile != null && !"".equals(confFile)) {

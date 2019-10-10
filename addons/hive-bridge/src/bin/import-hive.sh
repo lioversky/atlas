@@ -62,52 +62,12 @@ LOGFILE="$ATLAS_LOG_DIR/import-hive.log"
 
 TIME=`date +%Y%m%d%H%M%s`
 
-#Add hive conf in classpath
-if [ ! -z "$HIVE_CONF_DIR" ]; then
-    HIVE_CONF=$HIVE_CONF_DIR
-elif [ ! -z "$HIVE_HOME" ]; then
-    HIVE_CONF="$HIVE_HOME/conf"
-elif [ -e /etc/hive/conf ]; then
-    HIVE_CONF="/etc/hive/conf"
-else
-    echo "Could not find a valid HIVE configuration"
-    exit 1
-fi
-
-echo Using Hive configuration directory ["$HIVE_CONF"]
-
-
-if [ -f "${HIVE_CONF}/hive-env.sh" ]; then
-  . "${HIVE_CONF}/hive-env.sh"
-fi
-
-if [ -z "$HIVE_HOME" ]; then
-    if [ -d "${BASEDIR}/../hive" ]; then
-        HIVE_HOME=${BASEDIR}/../hive
-    else
-        echo "Please set HIVE_HOME to the root of Hive installation"
-        exit 1
-    fi
-fi
 
 HIVE_CP="${HIVE_CONF}"
 
 for i in "${HIVE_HOME}/lib/"*.jar; do
     HIVE_CP="${HIVE_CP}:$i"
 done
-
-#Add hadoop conf in classpath
-if [ ! -z "$HADOOP_CLASSPATH" ]; then
-    HADOOP_CP=$HADOOP_CLASSPATH
-elif [ ! -z "$HADOOP_HOME" ]; then
-    HADOOP_CP=`$HADOOP_HOME/bin/hadoop classpath`
-elif [ $(command -v hadoop) ]; then
-    HADOOP_CP=`hadoop classpath`
-    echo $HADOOP_CP
-else
-    echo "Environment variable HADOOP_CLASSPATH or HADOOP_HOME need to be set"
-    exit 1
-fi
 
 CP="${HIVE_CP}:${HADOOP_CP}:${ATLASCPPATH}"
 
@@ -136,9 +96,11 @@ do
     -d) IMPORT_ARGS="$IMPORT_ARGS -d $1"; shift;;
     -t) IMPORT_ARGS="$IMPORT_ARGS -t $1"; shift;;
     -f) IMPORT_ARGS="$IMPORT_ARGS -f $1"; shift;;
+    -c) IMPORT_ARGS="$IMPORT_ARGS -c $1"; shift;;
     --database) IMPORT_ARGS="$IMPORT_ARGS --database $1"; shift;;
     --table) IMPORT_ARGS="$IMPORT_ARGS --table $1"; shift;;
     --filename) IMPORT_ARGS="$IMPORT_ARGS --filename $1"; shift;;
+    --conf) IMPORT_ARGS="$IMPORT_ARGS --conf $1"; shift;;
     "") break;;
     *) JVM_ARGS="$JVM_ARGS $option"
   esac
