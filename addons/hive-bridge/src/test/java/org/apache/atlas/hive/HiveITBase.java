@@ -20,12 +20,10 @@ package org.apache.atlas.hive;
 
 import com.google.common.annotations.VisibleForTesting;
 import org.apache.atlas.ApplicationProperties;
-import org.apache.atlas.AtlasClient;
 import org.apache.atlas.AtlasClientV2;
 import org.apache.atlas.AtlasServiceException;
 import org.apache.atlas.hive.bridge.ColumnLineageUtils;
 import org.apache.atlas.hive.bridge.HiveMetaStoreBridge;
-import org.apache.atlas.hive.hook.HiveHookIT;
 import org.apache.atlas.hive.model.HiveDataTypes;
 import org.apache.atlas.model.instance.AtlasEntity;
 import org.apache.atlas.model.instance.AtlasObjectId;
@@ -53,6 +51,7 @@ import org.apache.hadoop.security.UserGroupInformation;
 import org.json.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.testng.Assert;
 import org.testng.annotations.BeforeClass;
 
 import java.io.File;
@@ -70,7 +69,7 @@ import java.util.SortedSet;
 
 import static com.sun.jersey.api.client.ClientResponse.Status.NOT_FOUND;
 import static org.apache.atlas.hive.bridge.HiveMetaStoreBridge.HDFS_PATH;
-import static org.apache.atlas.hive.hook.events.BaseHiveEvent.ATTRIBUTE_QUALIFIED_NAME;
+import static org.apache.atlas.hive.HiveBase.ATTRIBUTE_QUALIFIED_NAME;
 import static org.apache.atlas.hive.model.HiveDataTypes.HIVE_DB;
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertNotNull;
@@ -91,7 +90,6 @@ public class HiveITBase {
 
 
     protected Driver              driver;
-    protected AtlasClient         atlasClient;
     protected AtlasClientV2       atlasClientV2;
     protected HiveMetaStoreBridge hiveMetaStoreBridge;
     protected SessionState        ss;
@@ -128,10 +126,8 @@ public class HiveITBase {
 
         if (!AuthenticationUtil.isKerberosAuthenticationEnabled()) {
             atlasClientV2 = new AtlasClientV2(atlasEndPoint, new String[]{"admin", "admin"});
-            atlasClient   = new AtlasClient(atlasEndPoint, new String[]{"admin", "admin"});
         } else {
             atlasClientV2 = new AtlasClientV2(atlasEndPoint);
-            atlasClient   = new AtlasClient(atlasEndPoint);
         }
 
         hiveMetaStoreBridge = new HiveMetaStoreBridge(configuration, conf, atlasClientV2);
@@ -167,7 +163,7 @@ public class HiveITBase {
 
         CommandProcessorResponse response = driver.run(cmd);
 
-        assertEquals(response.getResponseCode(), 0);
+        Assert.assertEquals(response.getResponseCode(), 0);
 
         if (sleepMs != 0) {
             Thread.sleep(sleepMs);
@@ -215,7 +211,7 @@ public class HiveITBase {
         return assertTableIsRegistered(dbName, tableName, null, false);
     }
 
-    protected String assertTableIsRegistered(String dbName, String tableName, HiveHookIT.AssertPredicate assertPredicate, boolean isTemporary) throws Exception {
+    protected String assertTableIsRegistered(String dbName, String tableName, AssertPredicate assertPredicate, boolean isTemporary) throws Exception {
         LOG.debug("Searching for table {}.{}", dbName, tableName);
         String tableQualifiedName = HiveMetaStoreBridge.getTableQualifiedName(CLUSTER_NAME, dbName, tableName, isTemporary);
         return assertEntityIsRegistered(HiveDataTypes.HIVE_TABLE.getName(), REFERENCEABLE_ATTRIBUTE_NAME, tableQualifiedName,
@@ -223,13 +219,13 @@ public class HiveITBase {
     }
 
     protected String assertEntityIsRegistered(final String typeName, final String property, final String value,
-                                              final HiveHookIT.AssertPredicate assertPredicate) throws Exception {
-        waitFor(100000, new HiveHookIT.Predicate() {
+                                              final AssertPredicate assertPredicate) throws Exception {
+        waitFor(100000, new Predicate() {
             @Override
             public void evaluate() throws Exception {
                 AtlasEntity.AtlasEntityWithExtInfo atlasEntityWithExtInfo = atlasClientV2.getEntityByAttribute(typeName, Collections.singletonMap(property,value));
                 AtlasEntity entity = atlasEntityWithExtInfo.getEntity();
-                assertNotNull(entity);
+                Assert.assertNotNull(entity);
                 if (assertPredicate != null) {
                     assertPredicate.assertOnEntity(entity);
                 }
@@ -241,13 +237,13 @@ public class HiveITBase {
     }
 
     protected String assertEntityIsRegisteredViaGuid(String guid,
-                                              final HiveHookIT.AssertPredicate assertPredicate) throws Exception {
-        waitFor(100000, new HiveHookIT.Predicate() {
+                                              final AssertPredicate assertPredicate) throws Exception {
+        waitFor(100000, new Predicate() {
             @Override
             public void evaluate() throws Exception {
                     AtlasEntity.AtlasEntityWithExtInfo atlasEntityWithExtInfo = atlasClientV2.getEntityByGuid(guid);
                     AtlasEntity entity = atlasEntityWithExtInfo.getEntity();
-                    assertNotNull(entity);
+                    Assert.assertNotNull(entity);
                     if (assertPredicate != null) {
                         assertPredicate.assertOnEntity(entity);
                     }
@@ -260,13 +256,13 @@ public class HiveITBase {
     }
 
     protected AtlasEntity assertEntityIsRegistedViaEntity(final String typeName, final String property, final String value,
-                                              final HiveHookIT.AssertPredicate assertPredicate) throws Exception {
-        waitFor(80000, new HiveHookIT.Predicate() {
+                                              final AssertPredicate assertPredicate) throws Exception {
+        waitFor(80000, new Predicate() {
             @Override
             public void evaluate() throws Exception {
                 AtlasEntity.AtlasEntityWithExtInfo atlasEntityWithExtInfo = atlasClientV2.getEntityByAttribute(typeName, Collections.singletonMap(property,value));
                 AtlasEntity entity = atlasEntityWithExtInfo.getEntity();
-                assertNotNull(entity);
+                Assert.assertNotNull(entity);
                 if (assertPredicate != null) {
                     assertPredicate.assertOnEntity(entity);
                 }
@@ -307,7 +303,7 @@ public class HiveITBase {
                 return;
             } catch(Error | Exception e) {
                 if (System.currentTimeMillis() >= mustEnd) {
-                    fail("Assertions failed. Failing after waiting for timeout " + timeout + " msecs", e);
+                    Assert.fail("Assertions failed. Failing after waiting for timeout " + timeout + " msecs", e);
                 }
                 LOG.debug("Waiting up to {} msec as assertion failed", mustEnd - System.currentTimeMillis(), e);
                 Thread.sleep(5000);
@@ -339,7 +335,7 @@ public class HiveITBase {
             hdfsPathGuids.add(hdfsPathObjectId.getGuid());
         }
 
-        assertTrue(hdfsPathGuids.contains(hdfsPathId));
+        Assert.assertTrue(hdfsPathGuids.contains(hdfsPathId));
     }
 
     protected String assertHDFSPathIsRegistered(String path) throws Exception {
@@ -380,7 +376,7 @@ public class HiveITBase {
         try {
             atlasClientV2.getEntityByAttribute(typeName, Collections.singletonMap(property, value));
 
-            fail(String.format("Entity was not supposed to exist for typeName = %s, attributeName = %s, attributeValue = %s", typeName, property, value));
+            Assert.fail(String.format("Entity was not supposed to exist for typeName = %s, attributeName = %s, attributeValue = %s", typeName, property, value));
         } catch (AtlasServiceException e) {
             if (e.getStatus() == NOT_FOUND) {
                 return;
@@ -391,7 +387,7 @@ public class HiveITBase {
     protected AtlasEntity getAtlasEntityByType(String type, String id) throws Exception {
         AtlasEntity atlasEntity = null;
         AtlasEntity.AtlasEntityWithExtInfo atlasEntityWithExtInfoForProcess = atlasClientV2.getEntityByAttribute(type,
-                Collections.singletonMap(AtlasClient.GUID, id));
+                Collections.singletonMap("GUID", id));
         atlasEntity = atlasEntityWithExtInfoForProcess.getEntity();
         return atlasEntity;
     }
@@ -616,7 +612,7 @@ public class HiveITBase {
 
     protected static void addDataset(StringBuilder buffer, AtlasEntity ref) {
         buffer.append(SEP);
-        String dataSetQlfdName = (String) ref.getAttribute(AtlasClient.REFERENCEABLE_ATTRIBUTE_NAME);
+        String dataSetQlfdName = (String) ref.getAttribute("qualifiedName");
         // '/' breaks query parsing on ATLAS
         buffer.append(dataSetQlfdName.toLowerCase().replaceAll("/", ""));
     }
@@ -793,4 +789,6 @@ public class HiveITBase {
 
         return ret;
     }
+
+
 }

@@ -45,9 +45,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.regex.Pattern;
 
-import static org.apache.atlas.hive.hook.events.BaseHiveEvent.ATTRIBUTE_QUALIFIED_NAME;
-import static org.apache.atlas.hive.hook.events.BaseHiveEvent.HIVE_TYPE_DB;
-import static org.apache.atlas.hive.hook.events.BaseHiveEvent.HIVE_TYPE_TABLE;
+import static org.apache.atlas.hive.HiveBase.*;
 
 public class HiveHook extends AtlasHook implements ExecuteWithHookContext {
     private static final Logger LOG = LoggerFactory.getLogger(HiveHook.class);
@@ -360,9 +358,11 @@ public class HiveHook extends AtlasHook implements ExecuteWithHookContext {
         public void addToKnownEntities(Collection<AtlasEntity> entities) {
             for (AtlasEntity entity : entities) {
                 if (StringUtils.equalsIgnoreCase(entity.getTypeName(), HIVE_TYPE_DB)) {
-                    addToKnownDatabase((String) entity.getAttribute(ATTRIBUTE_QUALIFIED_NAME));
+                    addToKnownDatabase((String) entity.getAttribute(
+                        ATTRIBUTE_QUALIFIED_NAME));
                 } else if (StringUtils.equalsIgnoreCase(entity.getTypeName(), HIVE_TYPE_TABLE)) {
-                    addToKnownTable((String) entity.getAttribute(ATTRIBUTE_QUALIFIED_NAME));
+                    addToKnownTable((String) entity.getAttribute(
+                        ATTRIBUTE_QUALIFIED_NAME));
                 }
             }
         }

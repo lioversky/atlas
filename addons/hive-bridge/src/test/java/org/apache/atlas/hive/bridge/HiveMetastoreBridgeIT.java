@@ -18,7 +18,7 @@
 
 package org.apache.atlas.hive.bridge;
 
-import org.apache.atlas.AtlasClient;
+import java.util.Collections;
 import org.apache.atlas.hive.HiveITBase;
 import org.apache.atlas.hive.model.HiveDataTypes;
 import org.apache.atlas.model.instance.AtlasEntity;
@@ -43,7 +43,7 @@ public class HiveMetastoreBridgeIT extends HiveITBase {
         String tableId = assertTableIsRegistered(DEFAULT_DB, tableName);
 
         //verify lineage is created
-        String      processId      = assertEntityIsRegistered(HiveDataTypes.HIVE_PROCESS.getName(), AtlasClient.REFERENCEABLE_ATTRIBUTE_NAME, getTableProcessQualifiedName(DEFAULT_DB, tableName), null);
+        String      processId      = assertEntityIsRegistered(HiveDataTypes.HIVE_PROCESS.getName(), "qualifiedName", getTableProcessQualifiedName(DEFAULT_DB, tableName), null);
         AtlasEntity processsEntity = atlasClientV2.getEntityByGuid(processId).getEntity();
 
         validateHDFSPaths(processsEntity, INPUTS, pFile);
@@ -53,7 +53,8 @@ public class HiveMetastoreBridgeIT extends HiveITBase {
         assertEquals(outputs.size(), 1);
         assertEquals(outputs.get(0).getGuid(), tableId);
 
-        int tableCount = atlasClient.listEntities(HiveDataTypes.HIVE_TABLE.getName()).size();
+        int tableCount = atlasClientV2.getEntitiesByAttribute(HiveDataTypes.HIVE_TABLE.getName(),
+            Collections.emptyList()).getEntities().size();
 
         //Now import using import tool - should be no-op. This also tests update since table exists
         AtlasEntity dbEntity = atlasClientV2.getEntityByGuid(dbId).getEntity();
@@ -63,11 +64,13 @@ public class HiveMetastoreBridgeIT extends HiveITBase {
         String tableId2 = assertTableIsRegistered(DEFAULT_DB, tableName);
         assertEquals(tableId2, tableId);
 
-        String processId2 = assertEntityIsRegistered(HiveDataTypes.HIVE_PROCESS.getName(), AtlasClient.REFERENCEABLE_ATTRIBUTE_NAME, getTableProcessQualifiedName(DEFAULT_DB, tableName), null);
+        String processId2 = assertEntityIsRegistered(HiveDataTypes.HIVE_PROCESS.getName(), "qualifiedName", getTableProcessQualifiedName(DEFAULT_DB, tableName), null);
         assertEquals(processId2, processId);
 
         //assert that table is de-duped and no new entity is created
-        int newTableCount = atlasClient.listEntities(HiveDataTypes.HIVE_TABLE.getName()).size();
+
+        int newTableCount = atlasClientV2.getEntitiesByAttribute(HiveDataTypes.HIVE_TABLE.getName(),
+            Collections.emptyList()).getEntities().size();
         assertEquals(newTableCount, tableCount);
     }
 
@@ -86,7 +89,7 @@ public class HiveMetastoreBridgeIT extends HiveITBase {
 
         String tableId = assertTableIsRegistered(DEFAULT_DB, tableName);
 
-        String              processId     = assertEntityIsRegistered(HiveDataTypes.HIVE_PROCESS.getName(), AtlasClient.REFERENCEABLE_ATTRIBUTE_NAME, getTableProcessQualifiedName(DEFAULT_DB, tableName), null);
+        String              processId     = assertEntityIsRegistered(HiveDataTypes.HIVE_PROCESS.getName(), "qualifiedName", getTableProcessQualifiedName(DEFAULT_DB, tableName), null);
         AtlasEntity         processEntity = atlasClientV2.getEntityByGuid(processId).getEntity();
         List<AtlasObjectId> outputs       = toAtlasObjectIdList(processEntity.getAttribute(OUTPUTS));
 
@@ -109,7 +112,7 @@ public class HiveMetastoreBridgeIT extends HiveITBase {
         String tableId = assertTableIsRegistered(DEFAULT_DB, tableName);
 
         //verify lineage is created and the name attribute is the query without \n
-        String      processId      = assertEntityIsRegistered(HiveDataTypes.HIVE_PROCESS.getName(), AtlasClient.REFERENCEABLE_ATTRIBUTE_NAME, getTableProcessQualifiedName(DEFAULT_DB, tableName), null);
+        String      processId      = assertEntityIsRegistered(HiveDataTypes.HIVE_PROCESS.getName(), "qualifiedName", getTableProcessQualifiedName(DEFAULT_DB, tableName), null);
         AtlasEntity processsEntity = atlasClientV2.getEntityByGuid(processId).getEntity();
 
         assertEquals(processsEntity.getAttribute("name"), processNameQuery);

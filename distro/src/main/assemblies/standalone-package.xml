@@ -129,7 +129,7 @@
         <!-- addons/hive -->
         <fileSet>
             <directory>../addons/hive-bridge/src/bin</directory>
-            <outputDirectory>bin</outputDirectory>
+            <outputDirectory>hook-bin</outputDirectory>
             <fileMode>0755</fileMode>
             <directoryMode>0755</directoryMode>
         </fileSet>

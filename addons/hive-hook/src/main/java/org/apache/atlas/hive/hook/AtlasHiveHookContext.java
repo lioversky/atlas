@@ -18,6 +18,7 @@
 
 package org.apache.atlas.hive.hook;
 
+import org.apache.atlas.hive.hook.events.BaseHiveEvent;
 import org.apache.atlas.model.instance.AtlasEntity;
 import org.apache.atlas.hive.hook.HiveMetastoreHookImpl.HiveMetastoreHook;
 import org.apache.atlas.hive.hook.HiveHook.PreprocessAction;
@@ -34,7 +35,7 @@ import org.apache.hadoop.hive.ql.session.SessionState;
 
 import java.util.*;
 
-import static org.apache.atlas.hive.bridge.HiveMetaStoreBridge.getDatabaseName;
+import static org.apache.atlas.hive.hook.events.BaseHiveEvent.getDatabaseName;
 import static org.apache.atlas.hive.hook.events.BaseHiveEvent.toTable;
 
 
@@ -256,13 +257,13 @@ public class AtlasHiveHookContext {
 //                    databases.add(((AlterDatabaseEvent) metastoreEvent).getNewDatabase());
 //                    break;
                 case CREATETABLE:
-                    tables.add(toTable(((CreateTableEvent) metastoreEvent).getTable()));
+                    tables.add(BaseHiveEvent.toTable(((CreateTableEvent) metastoreEvent).getTable()));
                     break;
                 case ALTERTABLE_PROPERTIES:
                 case ALTERTABLE_RENAME:
                 case ALTERTABLE_RENAMECOL:
-                    tables.add(toTable(((AlterTableEvent) metastoreEvent).getOldTable()));
-                    tables.add(toTable(((AlterTableEvent) metastoreEvent).getNewTable()));
+                    tables.add(BaseHiveEvent.toTable(((AlterTableEvent) metastoreEvent).getOldTable()));
+                    tables.add(BaseHiveEvent.toTable(((AlterTableEvent) metastoreEvent).getNewTable()));
                     break;
             }
         } else {
@@ -292,4 +293,5 @@ public class AtlasHiveHookContext {
     private static boolean isCreateAlterOperation(String operationName) {
         return operationName != null && operationName.startsWith(CREATE_OPERATION) || operationName.startsWith(ALTER_OPERATION);
     }
+
 }

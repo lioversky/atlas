@@ -18,6 +18,8 @@
 
 package org.apache.atlas.hive.hook.events;
 
+import static org.apache.atlas.hive.HiveBase.*;
+
 import org.apache.atlas.hive.hook.AtlasHiveHookContext;
 import org.apache.atlas.model.instance.AtlasEntity;
 import org.apache.atlas.model.instance.AtlasEntity.AtlasEntitiesWithExtInfo;

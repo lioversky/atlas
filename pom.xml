@@ -801,6 +801,9 @@
         <module>addons/elasticsearch-bridge</module>
         <module>addons/pinot-bridge</module>
         <module>distro</module>
+        <module>addons/hive-hook</module>
+        <module>../addons/atlas/hive-parent</module>
+        <module>addons/hive-parent</module>
     </modules>
 
     <repositories>

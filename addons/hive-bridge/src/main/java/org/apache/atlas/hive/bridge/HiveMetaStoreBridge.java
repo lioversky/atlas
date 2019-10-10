@@ -20,13 +20,13 @@ package org.apache.atlas.hive.bridge;
 
 import com.google.common.annotations.VisibleForTesting;
 import com.sun.jersey.api.client.ClientResponse;
+import java.util.HashMap;
 import org.apache.atlas.type.AtlasTypeUtil;
 import org.apache.atlas.ApplicationProperties;
 import org.apache.atlas.AtlasClientV2;
 import org.apache.atlas.AtlasServiceException;
-import org.apache.atlas.hive.hook.events.BaseHiveEvent;
 import org.apache.atlas.hive.model.HiveDataTypes;
-import org.apache.atlas.hook.AtlasHookException;
+import org.apache.atlas.AtlasException;
 import org.apache.atlas.model.instance.AtlasEntityHeader;
 import org.apache.atlas.model.instance.EntityMutationResponse;
 import org.apache.atlas.model.instance.EntityMutations;
@@ -73,7 +73,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
-import static org.apache.atlas.hive.hook.events.BaseHiveEvent.*;
+import static org.apache.atlas.hive.HiveBase.*;
 
 /**
  * A Bridge Utility that imports metadata from the Hive Meta Store
@@ -110,6 +110,13 @@ public class HiveMetaStoreBridge {
     private final boolean       convertHdfsPathToLowerCase;
     private String              datasetPrefix;
 
+    public static final Map<Integer, String> OWNER_TYPE_TO_ENUM_VALUE = new HashMap<>();
+
+    static {
+        OWNER_TYPE_TO_ENUM_VALUE.put(1, "USER");
+        OWNER_TYPE_TO_ENUM_VALUE.put(2, "ROLE");
+        OWNER_TYPE_TO_ENUM_VALUE.put(3, "GROUP");
+    }
 
     public static void main(String[] args) {
         int exitCode = EXIT_CODE_FAILED;
@@ -454,7 +461,7 @@ public class HiveMetaStoreBridge {
         return ret;
     }
 
-    private AtlasEntityWithExtInfo registerTable(AtlasEntity dbEntity, Table table) throws AtlasHookException {
+    private AtlasEntityWithExtInfo registerTable(AtlasEntity dbEntity, Table table) throws AtlasException {
         try {
             AtlasEntityWithExtInfo ret;
             AtlasEntityWithExtInfo tableEntity = findTableEntity(table);
@@ -473,7 +480,7 @@ public class HiveMetaStoreBridge {
 
             return ret;
         } catch (Exception e) {
-            throw new AtlasHookException("HiveMetaStoreBridge.registerTable() failed.", e);
+            throw new AtlasException("HiveMetaStoreBridge.registerTable() failed.", e);
         }
     }
 
@@ -601,14 +608,11 @@ public class HiveMetaStoreBridge {
     }
 
     public static String getDatabaseName(Database hiveDB) {
-        String dbName      = hiveDB.getName().toLowerCase();
-//        String catalogName = hiveDB.getCatalogName() != null ? hiveDB.getCatalogName().toLowerCase() : null;
-//
-//        if (StringUtils.isNotEmpty(catalogName) && !StringUtils.equals(catalogName, DEFAULT_METASTORE_CATALOG)) {
-//            dbName = catalogName + SEP + dbName;
-//        }
-
         return hiveDB.getName().toLowerCase();
+    }
+
+    public static long getTableCreateTime(Table table) {
+        return table.getTTable() != null ? (table.getTTable().getCreateTime() * MILLIS_CONVERT_FACTOR) : System.currentTimeMillis();
     }
 
     /**
@@ -618,18 +622,18 @@ public class HiveMetaStoreBridge {
      * @return Newly created Hive AtlasEntity
      * @throws Exception
      */
-    private AtlasEntityWithExtInfo toTableEntity(AtlasEntity database, Table hiveTable) throws AtlasHookException {
+    private AtlasEntityWithExtInfo toTableEntity(AtlasEntity database, Table hiveTable) throws AtlasException{
         return toTableEntity(database, hiveTable, null);
     }
 
-    private AtlasEntityWithExtInfo toTableEntity(AtlasEntity database, final Table hiveTable, AtlasEntityWithExtInfo table) throws AtlasHookException {
+    private AtlasEntityWithExtInfo toTableEntity(AtlasEntity database, final Table hiveTable, AtlasEntityWithExtInfo table) throws AtlasException{
         if (table == null) {
             table = new AtlasEntityWithExtInfo(new AtlasEntity(HiveDataTypes.HIVE_TABLE.getName()));
         }
 
         AtlasEntity tableEntity        = table.getEntity();
         String      tableQualifiedName = getTableQualifiedName(metadataNamespace, hiveTable);
-        long        createTime         = BaseHiveEvent.getTableCreateTime(hiveTable);
+        long        createTime         = getTableCreateTime(hiveTable);
         long        lastAccessTime     = hiveTable.getLastAccessTime() > 0 ? hiveTable.getLastAccessTime() : createTime;
 
         tableEntity.setRelationshipAttribute(ATTRIBUTE_DB, AtlasTypeUtil.getAtlasRelatedObjectId(database, RELATIONSHIP_HIVE_TABLE_DB));
@@ -681,7 +685,7 @@ public class HiveMetaStoreBridge {
         return table;
     }
 
-    private AtlasEntity toStorageDescEntity(StorageDescriptor storageDesc, String tableQualifiedName, String sdQualifiedName, AtlasObjectId tableId ) throws AtlasHookException {
+    private AtlasEntity toStorageDescEntity(StorageDescriptor storageDesc, String tableQualifiedName, String sdQualifiedName, AtlasObjectId tableId ) {
         AtlasEntity ret = new AtlasEntity(HiveDataTypes.HIVE_STORAGEDESC.getName());
 
         ret.setRelationshipAttribute(ATTRIBUTE_TABLE, AtlasTypeUtil.getAtlasRelatedObjectId(tableId, RELATIONSHIP_HIVE_TABLE_STORAGE_DESC));
@@ -731,7 +735,7 @@ public class HiveMetaStoreBridge {
         return ret;
     }
 
-    private List<AtlasEntity> toColumns(List<FieldSchema> schemaList, AtlasEntity table, String relationshipType) throws AtlasHookException {
+    private List<AtlasEntity> toColumns(List<FieldSchema> schemaList, AtlasEntity table, String relationshipType) throws AtlasException {
         List<AtlasEntity> ret = new ArrayList<>();
 
         int columnPosition = 0;

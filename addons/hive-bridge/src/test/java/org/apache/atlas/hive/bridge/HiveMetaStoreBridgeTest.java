@@ -18,7 +18,6 @@
 
 package org.apache.atlas.hive.bridge;
 
-import org.apache.atlas.AtlasClient;
 import org.apache.atlas.AtlasClientV2;
 import org.apache.atlas.AtlasServiceException;
 import org.apache.atlas.hive.model.HiveDataTypes;
@@ -46,7 +45,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
-import static org.apache.atlas.hive.hook.events.BaseHiveEvent.*;
+import static org.apache.atlas.hive.HiveBase.*;
 import static org.mockito.Matchers.anyObject;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.mock;
@@ -61,8 +60,6 @@ public class HiveMetaStoreBridgeTest {
     @Mock
     private Hive hiveClient;
 
-    @Mock
-    private AtlasClient atlasClient;
 
     @Mock
     private AtlasClientV2 atlasClientV2;
@@ -94,7 +91,7 @@ public class HiveMetaStoreBridgeTest {
 
         when(atlasEntityWithExtInfo.getEntity("72e06b34-9151-4023-aa9d-b82103a50e76"))
                 .thenReturn((new AtlasEntity.AtlasEntityWithExtInfo(
-                        getEntity(HiveDataTypes.HIVE_DB.getName(), AtlasClient.GUID, "72e06b34-9151-4023-aa9d-b82103a50e76"))).getEntity());
+                        getEntity(HiveDataTypes.HIVE_DB.getName(), "GUID", "72e06b34-9151-4023-aa9d-b82103a50e76"))).getEntity());
 
         HiveMetaStoreBridge bridge = new HiveMetaStoreBridge(METADATA_NAMESPACE, hiveClient, atlasClientV2);
         bridge.importHiveMetadata(null, null, true);
@@ -115,13 +112,13 @@ public class HiveMetaStoreBridgeTest {
 
         when(atlasEntityWithExtInfo.getEntity("82e06b34-9151-4023-aa9d-b82103a50e77"))
                 .thenReturn((new AtlasEntity.AtlasEntityWithExtInfo(
-                        getEntity(HiveDataTypes.HIVE_TABLE.getName(), AtlasClient.GUID, "82e06b34-9151-4023-aa9d-b82103a50e77"))).getEntity());
+                        getEntity(HiveDataTypes.HIVE_TABLE.getName(), "GUID", "82e06b34-9151-4023-aa9d-b82103a50e77"))).getEntity());
 
         when(atlasClientV2.getEntityByAttribute(HiveDataTypes.HIVE_TABLE.getName(),
-                Collections.singletonMap(AtlasClient.REFERENCEABLE_ATTRIBUTE_NAME,
+                Collections.singletonMap("qualifiedName",
                 HiveMetaStoreBridge.getTableQualifiedName(METADATA_NAMESPACE, TEST_DB_NAME, TEST_TABLE_NAME))))
                 .thenReturn(new AtlasEntity.AtlasEntityWithExtInfo(
-                        getEntity(HiveDataTypes.HIVE_TABLE.getName(), AtlasClient.GUID, "82e06b34-9151-4023-aa9d-b82103a50e77")));
+                        getEntity(HiveDataTypes.HIVE_TABLE.getName(), "GUID", "82e06b34-9151-4023-aa9d-b82103a50e77")));
 
         when(atlasEntityWithExtInfo.getEntity("82e06b34-9151-4023-aa9d-b82103a50e77"))
                 .thenReturn(createTableReference());
@@ -130,10 +127,10 @@ public class HiveMetaStoreBridgeTest {
         String processQualifiedName = HiveMetaStoreBridge.getTableProcessQualifiedName(METADATA_NAMESPACE, testTable);
 
         when(atlasClientV2.getEntityByAttribute(HiveDataTypes.HIVE_PROCESS.getName(),
-            Collections.singletonMap(AtlasClient.REFERENCEABLE_ATTRIBUTE_NAME,
+            Collections.singletonMap("qualifiedName",
                     processQualifiedName)))
         .thenReturn(new AtlasEntity.AtlasEntityWithExtInfo(
-                getEntity(HiveDataTypes.HIVE_PROCESS.getName(), AtlasClient.GUID, "82e06b34-9151-4023-aa9d-b82103a50e77")));
+                getEntity(HiveDataTypes.HIVE_PROCESS.getName(), "GUID", "82e06b34-9151-4023-aa9d-b82103a50e77")));
 
 
         HiveMetaStoreBridge bridge = new HiveMetaStoreBridge(METADATA_NAMESPACE, hiveClient, atlasClientV2);
@@ -146,13 +143,13 @@ public class HiveMetaStoreBridgeTest {
 
     private void returnExistingDatabase(String databaseName, AtlasClientV2 atlasClientV2, String metadataNamespace)
             throws AtlasServiceException {
-            //getEntity(HiveDataTypes.HIVE_DB.getName(), AtlasClient.GUID, "72e06b34-9151-4023-aa9d-b82103a50e76");
+            //getEntity(HiveDataTypes.HIVE_DB.getName(), "GUID", "72e06b34-9151-4023-aa9d-b82103a50e76");
 
         when(atlasClientV2.getEntityByAttribute(HiveDataTypes.HIVE_DB.getName(),
-                Collections.singletonMap(AtlasClient.REFERENCEABLE_ATTRIBUTE_NAME,
+                Collections.singletonMap("qualifiedName",
                         HiveMetaStoreBridge.getDBQualifiedName(METADATA_NAMESPACE, TEST_DB_NAME))))
                 .thenReturn((new AtlasEntity.AtlasEntityWithExtInfo(
-                        getEntity(HiveDataTypes.HIVE_DB.getName(), AtlasClient.GUID, "72e06b34-9151-4023-aa9d-b82103a50e76"))));
+                        getEntity(HiveDataTypes.HIVE_DB.getName(), "GUID", "72e06b34-9151-4023-aa9d-b82103a50e76"))));
 
     }
 
@@ -183,18 +180,18 @@ public class HiveMetaStoreBridgeTest {
 
 
         when(atlasClientV2.getEntityByAttribute(HiveDataTypes.HIVE_TABLE.getName(),
-                Collections.singletonMap(AtlasClient.REFERENCEABLE_ATTRIBUTE_NAME,
+                Collections.singletonMap("qualifiedName",
                         HiveMetaStoreBridge.getTableQualifiedName(METADATA_NAMESPACE, TEST_DB_NAME, TEST_TABLE_NAME))))
         .thenReturn(new AtlasEntity.AtlasEntityWithExtInfo(
-                        getEntity(HiveDataTypes.HIVE_TABLE.getName(), AtlasClient.GUID, "82e06b34-9151-4023-aa9d-b82103a50e77")));
+                        getEntity(HiveDataTypes.HIVE_TABLE.getName(), "GUID", "82e06b34-9151-4023-aa9d-b82103a50e77")));
 
         String processQualifiedName = HiveMetaStoreBridge.getTableProcessQualifiedName(METADATA_NAMESPACE, hiveTable);
 
         when(atlasClientV2.getEntityByAttribute(HiveDataTypes.HIVE_PROCESS.getName(),
-                Collections.singletonMap(AtlasClient.REFERENCEABLE_ATTRIBUTE_NAME,
+                Collections.singletonMap("qualifiedName",
                         processQualifiedName)))
         .thenReturn(new AtlasEntity.AtlasEntityWithExtInfo(
-                        getEntity(HiveDataTypes.HIVE_PROCESS.getName(), AtlasClient.GUID, "82e06b34-9151-4023-aa9d-b82103a50e77")));
+                        getEntity(HiveDataTypes.HIVE_PROCESS.getName(), "GUID", "82e06b34-9151-4023-aa9d-b82103a50e77")));
 
         when(atlasEntityWithExtInfo.getEntity("82e06b34-9151-4023-aa9d-b82103a50e77"))
         .thenReturn(createTableReference());
@@ -224,10 +221,10 @@ public class HiveMetaStoreBridgeTest {
         when(hiveClient.getTable(TEST_DB_NAME, TEST_TABLE_NAME)).thenThrow(new RuntimeException("Timeout while reading data from hive metastore"));
 
         when(atlasClientV2.getEntityByAttribute(HiveDataTypes.HIVE_TABLE.getName(),
-                Collections.singletonMap(AtlasClient.REFERENCEABLE_ATTRIBUTE_NAME,
+                Collections.singletonMap("qualifiedName",
                         HiveMetaStoreBridge.getTableQualifiedName(METADATA_NAMESPACE, TEST_DB_NAME, TEST_TABLE_NAME))))
                 .thenReturn(new AtlasEntity.AtlasEntityWithExtInfo(
-                        getEntity(HiveDataTypes.HIVE_TABLE.getName(), AtlasClient.GUID, "82e06b34-9151-4023-aa9d-b82103a50e77")));
+                        getEntity(HiveDataTypes.HIVE_TABLE.getName(), "GUID", "82e06b34-9151-4023-aa9d-b82103a50e77")));
 
         when(atlasEntityWithExtInfo.getEntity("82e06b34-9151-4023-aa9d-b82103a50e77"))
                 .thenReturn(createTableReference());
@@ -236,10 +233,10 @@ public class HiveMetaStoreBridgeTest {
         String processQualifiedName = HiveMetaStoreBridge.getTableProcessQualifiedName(METADATA_NAMESPACE, testTable);
 
         when(atlasClientV2.getEntityByAttribute(HiveDataTypes.HIVE_PROCESS.getName(),
-                Collections.singletonMap(AtlasClient.REFERENCEABLE_ATTRIBUTE_NAME,
+                Collections.singletonMap("qualifiedName",
                         processQualifiedName)))
                 .thenReturn(new AtlasEntity.AtlasEntityWithExtInfo(
-                        getEntity(HiveDataTypes.HIVE_PROCESS.getName(), AtlasClient.GUID, "82e06b34-9151-4023-aa9d-b82103a50e77")));
+                        getEntity(HiveDataTypes.HIVE_PROCESS.getName(), "GUID", "82e06b34-9151-4023-aa9d-b82103a50e77")));
 
         HiveMetaStoreBridge bridge = new HiveMetaStoreBridge(METADATA_NAMESPACE, hiveClient, atlasClientV2);
         try {
@@ -260,10 +257,10 @@ public class HiveMetaStoreBridgeTest {
 
 
         when(atlasClientV2.getEntityByAttribute(HiveDataTypes.HIVE_TABLE.getName(),
-                Collections.singletonMap(AtlasClient.REFERENCEABLE_ATTRIBUTE_NAME,
+                Collections.singletonMap("qualifiedName",
                 HiveMetaStoreBridge.getTableQualifiedName(METADATA_NAMESPACE, TEST_DB_NAME, TEST_TABLE_NAME))))
         .thenReturn(new AtlasEntity.AtlasEntityWithExtInfo(
-                getEntity(HiveDataTypes.HIVE_TABLE.getName(), AtlasClient.GUID, "82e06b34-9151-4023-aa9d-b82103a50e77")));
+                getEntity(HiveDataTypes.HIVE_TABLE.getName(), "GUID", "82e06b34-9151-4023-aa9d-b82103a50e77")));
 
 
         when(atlasEntityWithExtInfo.getEntity("82e06b34-9151-4023-aa9d-b82103a50e77"))
@@ -273,10 +270,10 @@ public class HiveMetaStoreBridgeTest {
         String processQualifiedName = HiveMetaStoreBridge.getTableProcessQualifiedName(METADATA_NAMESPACE, testTable);
 
         when(atlasClientV2.getEntityByAttribute(HiveDataTypes.HIVE_PROCESS.getName(),
-                Collections.singletonMap(AtlasClient.REFERENCEABLE_ATTRIBUTE_NAME,
+                Collections.singletonMap("qualifiedName",
                         processQualifiedName)))
                 .thenReturn(new AtlasEntity.AtlasEntityWithExtInfo(
-                        getEntity(HiveDataTypes.HIVE_PROCESS.getName(), AtlasClient.GUID, "82e06b34-9151-4023-aa9d-b82103a50e77")));
+                        getEntity(HiveDataTypes.HIVE_PROCESS.getName(), "GUID", "82e06b34-9151-4023-aa9d-b82103a50e77")));
 
         HiveMetaStoreBridge bridge = new HiveMetaStoreBridge(METADATA_NAMESPACE, hiveClient, atlasClientV2);
         try {

@@ -32,8 +32,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import static org.apache.atlas.hive.hook.events.BaseHiveEvent.ATTRIBUTE_COLUMNS;
-import static org.apache.atlas.hive.hook.events.BaseHiveEvent.ATTRIBUTE_QUALIFIED_NAME;
+import static org.apache.atlas.hive.HiveBase.ATTRIBUTE_COLUMNS;
+import static org.apache.atlas.hive.HiveBase.ATTRIBUTE_QUALIFIED_NAME;
 
 
 public class ColumnLineageUtils {
