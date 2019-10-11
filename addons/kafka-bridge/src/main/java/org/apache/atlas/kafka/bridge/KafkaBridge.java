@@ -124,11 +124,11 @@ public class KafkaBridge {
             String atlasUserName = atlasConf.getString(ATLAS_REST_USERNAME, null);
             String atlasPassword = atlasConf.getString(ATLAS_REST_PASSWORD, null);
             if (atlasUserName != null && atlasPassword != null) {
-                atlasClientV2 = new AtlasClientV2(urls, new String[]{atlasUserName, atlasPassword});
+                atlasClientV2 = new AtlasClientV2(atlasConf, urls, new String[]{atlasUserName, atlasPassword});
             } else if (!AuthenticationUtil.isKerberosAuthenticationEnabled()) {
                 String[] basicAuthUsernamePassword = AuthenticationUtil.getBasicAuthenticationInput();
 
-                atlasClientV2 = new AtlasClientV2(urls, basicAuthUsernamePassword);
+                atlasClientV2 = new AtlasClientV2(atlasConf, urls, basicAuthUsernamePassword);
             } else {
                 UserGroupInformation ugi = UserGroupInformation.getCurrentUser();
 
