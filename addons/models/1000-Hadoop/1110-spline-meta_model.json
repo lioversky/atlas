@@ -139,6 +139,22 @@
           "isIndexable": false,
           "isOptional": true,
           "isUnique": false
+        },
+        {
+          "name": "endTime",
+          "typeName": "date",
+          "cardinality": "SINGLE",
+          "isIndexable": false,
+          "isOptional": false,
+          "isUnique": false
+        },
+        {
+          "name": "durationNs",
+          "typeName": "long",
+          "cardinality": "SINGLE",
+          "isIndexable": false,
+          "isOptional": false,
+          "isUnique": false
         }
       ]
     },
