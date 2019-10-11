@@ -8,6 +8,7 @@
       "superTypes": [
         "Referenceable"
       ],
+      "serviceType": "spark",
       "typeVersion": "1.0",
       "attributeDefs": [
         {
@@ -25,6 +26,7 @@
       "superTypes": [
         "spark_entity"
       ],
+      "serviceType": "spark",
       "typeVersion": "1.0",
       "attributeDefs": [
         {
@@ -50,6 +52,7 @@
       "superTypes": [
         "spark_attribute"
       ],
+      "serviceType": "spark",
       "typeVersion": "1.0",
       "attributeDefs": [
         {
@@ -78,6 +81,7 @@
       "superTypes": [
         "Process", "spark_entity"
       ],
+      "serviceType": "spark",
       "typeVersion": "1.0",
       "attributeDefs": [
         {
@@ -86,7 +90,7 @@
           "cardinality": "SINGLE",
           "isIndexable": true,
           "isOptional": true,
-          "isUnique": true
+          "isUnique": false
         },
         {
           "name": "metrics",
@@ -102,7 +106,7 @@
           "cardinality": "SINGLE",
           "isIndexable": true,
           "isOptional": false,
-          "isUnique": true
+          "isUnique": false
         },
         {
           "name": "operations",
@@ -147,6 +151,7 @@
       "superTypes": [
         "Process", "spark_entity"
       ],
+      "serviceType": "spark",
       "typeVersion": "1.0",
       "attributeDefs": []
     },
@@ -155,6 +160,7 @@
       "superTypes": [
         "Process", "spark_operation"
       ],
+      "serviceType": "spark",
       "typeVersion": "1.0",
       "attributeDefs": [
         {
@@ -172,6 +178,7 @@
       "superTypes": [
         "Process", "spark_operation"
       ],
+      "serviceType": "spark",
       "typeVersion": "1.0",
       "attributeDefs": [
         {
@@ -197,6 +204,7 @@
       "superTypes": [
         "Process","spark_operation"
       ],
+      "serviceType": "spark",
       "typeVersion": "1.0",
       "attributeDefs": [
         {
@@ -214,6 +222,7 @@
       "superTypes": [
         "Process","spark_operation"
       ],
+      "serviceType": "spark",
       "typeVersion": "1.0",
       "attributeDefs": [
         {
@@ -231,6 +240,7 @@
       "superTypes": [
         "Process","spark_operation"
       ],
+      "serviceType": "spark",
       "typeVersion": "1.0",
       "attributeDefs": [
         {
@@ -248,6 +258,7 @@
       "superTypes": [
         "spark_entity"
       ],
+      "serviceType": "spark",
       "typeVersion": "1.0",
       "attributeDefs": [
         {
@@ -281,6 +292,7 @@
       "superTypes": [
         "Process","spark_operation"
       ],
+      "serviceType": "spark",
       "typeVersion": "1.0",
       "attributeDefs": [
         {
@@ -298,6 +310,7 @@
       "superTypes": [
         "Process","spark_operation"
       ],
+      "serviceType": "spark",
       "typeVersion": "1.0",
       "attributeDefs": [
         {
@@ -323,6 +336,7 @@
       "superTypes": [
         "Process","spark_operation"
       ],
+      "serviceType": "spark",
       "typeVersion": "1.0",
       "attributeDefs": [
         {
@@ -340,6 +354,7 @@
       "superTypes": [
         "DataSet", "spark_entity"
       ],
+      "serviceType": "spark",
       "typeVersion": "1.0",
       "attributeDefs": [
         {
@@ -365,6 +380,7 @@
       "superTypes": [
         "spark_dataset"
       ],
+      "serviceType": "spark",
       "typeVersion": "1.0",
       "attributeDefs": [
         {
@@ -409,6 +425,7 @@
       "superTypes": [
         "spark_entity"
       ],
+      "serviceType": "spark",
       "typeVersion": "1.0",
       "attributeDefs": [
         {
@@ -426,6 +443,7 @@
       "superTypes": [
         "spark_data_type"
       ],
+      "serviceType": "spark",
       "typeVersion": "1.0",
       "attributeDefs": []
     },
@@ -434,6 +452,7 @@
       "superTypes": [
         "spark_data_type"
       ],
+      "serviceType": "spark",
       "typeVersion": "1.0",
       "attributeDefs": [
         {
@@ -459,6 +478,7 @@
       "superTypes": [
         "spark_attribute"
       ],
+      "serviceType": "spark",
       "typeVersion": "1.0",
       "attributeDefs": [
         {
@@ -487,6 +507,7 @@
       "superTypes": [
         "spark_data_type"
       ],
+      "serviceType": "spark",
       "typeVersion": "1.0",
       "attributeDefs": [
         {
@@ -504,6 +525,7 @@
       "superTypes": [
         "spark_entity"
       ],
+      "serviceType": "spark",
       "typeVersion": "1.0",
       "attributeDefs": [
         {
@@ -545,6 +567,7 @@
       "superTypes": [
         "spark_expression"
       ],
+      "serviceType": "spark",
       "typeVersion": "1.0",
       "attributeDefs": [
         {
@@ -562,6 +585,7 @@
       "superTypes": [
         "spark_expression"
       ],
+      "serviceType": "spark",
       "typeVersion": "1.0",
       "attributeDefs": [
         {
@@ -579,6 +603,7 @@
       "superTypes": [
         "spark_expression"
       ],
+      "serviceType": "spark",
       "typeVersion": "1.0",
       "attributeDefs": [
         {
@@ -604,6 +629,7 @@
       "superTypes": [
         "spark_expression"
       ],
+      "serviceType": "spark",
       "typeVersion": "1.0",
       "attributeDefs": [
         {
