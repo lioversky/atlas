@@ -289,9 +289,67 @@
           "isUnique": false
         }
       ]
+    },
+    {
+      "name": "hive_to_pinot",
+      "superTypes": [
+        "Process"
+      ],
+      "serviceType": "databus",
+      "typeVersion": "1.0",
+      "attributeDefs": [
+        {
+          "name": "startTime",
+          "typeName": "date",
+          "cardinality": "SINGLE",
+          "isIndexable": false,
+          "isOptional": false,
+          "isUnique": false
+        },
+        {
+          "name": "endTime",
+          "typeName": "date",
+          "cardinality": "SINGLE",
+          "isIndexable": false,
+          "isOptional": false,
+          "isUnique": false
+        },
+        {
+          "name": "userName",
+          "typeName": "string",
+          "cardinality": "SINGLE",
+          "isIndexable": true,
+          "isOptional": false,
+          "isUnique": false
+        },
+        {
+          "name": "clusterName",
+          "typeName": "string",
+          "cardinality": "SINGLE",
+          "isIndexable": true,
+          "isOptional": true,
+          "includeInNotification": true,
+          "isUnique": false
+        },
+        {
+          "name": "depenendencyType",
+          "typeName": "string",
+          "cardinality": "SINGLE",
+          "isIndexable": false,
+          "isOptional": true,
+          "isUnique": false
+        },
+        {
+          "name": "expression",
+          "typeName": "string",
+          "cardinality": "SINGLE",
+          "isIndexable": false,
+          "isOptional": true,
+          "isUnique": false
+        }
+      ]
     }
   ],
   "relationshipDefs": [
-
   ]
 }

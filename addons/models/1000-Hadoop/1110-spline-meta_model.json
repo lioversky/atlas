@@ -149,7 +149,7 @@
           "typeName": "date",
           "cardinality": "SINGLE",
           "isIndexable": false,
-          "isOptional": false,
+          "isOptional": true,
           "isUnique": false
         },
         {
@@ -157,7 +157,7 @@
           "typeName": "long",
           "cardinality": "SINGLE",
           "isIndexable": false,
-          "isOptional": false,
+          "isOptional": true,
           "isUnique": false
         }
       ]
