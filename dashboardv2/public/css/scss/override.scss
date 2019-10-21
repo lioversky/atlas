@@ -128,6 +128,7 @@ td {
     pre.scroll-y {
         max-height: 200px;
         overflow-y: auto;
+        word-break: break-word;
     }
 }
 
@@ -214,7 +215,7 @@ td {
 
 .select2-container--default .select2-search--inline .select2-search__field {
     color: #555;
-    width: 300px !important;
+    // width: 300px !important;
 }
 
 .typeLOV {

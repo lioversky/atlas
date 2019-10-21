@@ -19,14 +19,13 @@
 define(['require',
     'backbone',
     'hbs!tmpl/detail_page/DetailPageLayoutView_tmpl',
-    'hbs!tmpl/common/buttons_tmpl',
     'utils/Utils',
     'utils/CommonViewFunction',
     'utils/Globals',
     'utils/Enums',
     'utils/Messages',
     'utils/UrlLinks'
-], function(require, Backbone, DetailPageLayoutViewTmpl, ButtonsTmpl, Utils, CommonViewFunction, Globals, Enums, Messages, UrlLinks) {
+], function(require, Backbone, DetailPageLayoutViewTmpl, Utils, CommonViewFunction, Globals, Enums, Messages, UrlLinks) {
     'use strict';
 
     var DetailPageLayoutView = Backbone.Marionette.LayoutView.extend(
@@ -45,7 +44,9 @@ define(['require',
                 RAuditTableLayoutView: "#r_auditTableLayoutView",
                 RReplicationAuditTableLayoutView: "#r_replicationAuditTableLayoutView",
                 RProfileLayoutView: "#r_profileLayoutView",
-                RRelationshipLayoutView: "#r_relationshipLayoutView"
+                RRelationshipLayoutView: "#r_relationshipLayoutView",
+                REntityUserDefineView: "#r_entityUserDefineView",
+                REntityLabelDefineView: "#r_entityLabelDefineView"
             },
             /** ui selector cache */
             ui: {
@@ -53,8 +54,6 @@ define(['require',
                 termClick: '[data-id="termClick"]',
                 propagatedTagDiv: '[data-id="propagatedTagDiv"]',
                 title: '[data-id="title"]',
-                editButton: '[data-id="editButton"]',
-                editButtonContainer: '[data-id="editButtonContainer"]',
                 description: '[data-id="description"]',
                 editBox: '[data-id="editBox"]',
                 deleteTag: '[data-id="deleteTag"]',
@@ -76,7 +75,6 @@ define(['require',
             /** ui events hash */
             events: function() {
                 var events = {};
-                events["click " + this.ui.editButton] = 'onClickEditEntity';
                 events["click " + this.ui.tagClick] = function(e) {
                     if (e.target.nodeName.toLocaleLowerCase() != "i") {
                         Utils.setUrl({
@@ -197,7 +195,10 @@ define(['require',
                                 } else {
                                     this.ui.entityIcon.removeClass('disabled');
                                 }
-                                this.ui.entityIcon.attr('title', _.escape(collectionJSON.typeName)).html('<img src="' + Utils.getEntityIconPath({ entityData: entityData }) + '"/>').find("img").on('error', function() {
+                                if (collectionJSON.isIncomplete === true) {
+                                    this.$(".isIncomplete").addClass("show");
+                                }
+                                this.ui.entityIcon.attr('title', _.escape(collectionJSON.typeName)).html('<img src="' + Utils.getEntityIconPath({ entityData: entityData }) + '"/><i class="fa fa-hourglass-half"></i>').find("img").on('error', function() {
                                     this.src = Utils.getEntityIconPath({ entityData: entityData, errorUrl: this.src });
                                 });
                             } else {
@@ -219,10 +220,10 @@ define(['require',
                             this.generateTerm(collectionJSON.relationshipAttributes.meanings);
                         }
                         if (Globals.entityTypeConfList && _.isEmptyArray(Globals.entityTypeConfList)) {
-                            this.ui.editButtonContainer.html(ButtonsTmpl({ btn_edit: true }));
+                            this.editEntity = true;
                         } else {
                             if (_.contains(Globals.entityTypeConfList, collectionJSON.typeName)) {
-                                this.ui.editButtonContainer.html(ButtonsTmpl({ btn_edit: true }));
+                                this.editEntity = true;
                             }
                         }
                         if (collectionJSON.attributes && collectionJSON.attributes.columns) {
@@ -246,9 +247,12 @@ define(['require',
                         searchVent: this.searchVent,
                         attributeDefs: (function() {
                             return that.getEntityDef(collectionJSON);
-                        })()
+                        })(),
+                        editEntity: this.editEntity || false
                     }
                     this.renderEntityDetailTableLayoutView(obj);
+                    this.renderEntityUserDefineView(obj);
+                    this.renderEntityLabelDefineView(obj);
                     this.renderRelationshipLayoutView(obj);
                     this.renderAuditTableLayoutView(obj);
                     this.renderTagTableLayoutView(obj);
@@ -496,6 +500,18 @@ define(['require',
                     that.REntityDetailTableLayoutView.show(new EntityDetailTableLayoutView(obj));
                 });
             },
+            renderEntityUserDefineView: function(obj) {
+                var that = this;
+                require(['views/entity/EntityUserDefineView'], function(EntityUserDefineView) {
+                    that.REntityUserDefineView.show(new EntityUserDefineView(obj));
+                });
+            },
+            renderEntityLabelDefineView: function(obj) {
+                var that = this;
+                require(['views/entity/EntityLabelDefineView'], function(EntityLabelDefineView) {
+                    that.REntityLabelDefineView.show(new EntityLabelDefineView(obj));
+                });
+            },
             renderTagTableLayoutView: function(obj) {
                 var that = this;
                 require(['views/tag/TagDetailTableLayoutView'], function(TagDetailTableLayoutView) {
@@ -536,24 +552,6 @@ define(['require',
                 var that = this;
                 require(['views/profile/ProfileLayoutView'], function(ProfileLayoutView) {
                     that.RProfileLayoutView.show(new ProfileLayoutView(obj));
-                });
-            },
-            onClickEditEntity: function(e) {
-                var that = this;
-                $(e.currentTarget).blur();
-                require([
-                    'views/entity/CreateEntityLayoutView'
-                ], function(CreateEntityLayoutView) {
-                    var view = new CreateEntityLayoutView({
-                        guid: that.id,
-                        searchVent: that.searchVent,
-                        entityDefCollection: that.entityDefCollection,
-                        typeHeaders: that.typeHeaders,
-                        callback: function() {
-                            that.fetchCollection();
-                        }
-                    });
-
                 });
             }
         });
