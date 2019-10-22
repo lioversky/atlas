@@ -362,6 +362,14 @@
           "isIndexable": false,
           "isOptional": false,
           "isUnique": false
+        },
+        {
+          "name": "partition",
+          "typeName": "string",
+          "cardinality": "SINGLE",
+          "isIndexable": false,
+          "isOptional": true,
+          "isUnique": false
         }
       ]
     },
