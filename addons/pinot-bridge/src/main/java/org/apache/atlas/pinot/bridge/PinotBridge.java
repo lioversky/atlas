@@ -7,7 +7,7 @@
  * "License"); you may not use this file except in compliance
  * with the License.  You may obtain a copy of the License at
  *
- *     http://www.apache.org/licenses/LICENSE-2.0
+ * http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -21,6 +21,7 @@ package org.apache.atlas.pinot.bridge;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Strings;
+import com.google.common.collect.Lists;
 import com.sun.jersey.api.client.Client;
 import com.sun.jersey.api.client.ClientResponse;
 import com.sun.jersey.api.client.WebResource;
@@ -68,9 +69,12 @@ public class PinotBridge {
   private static final int EXIT_CODE_FAILED = 1;
   private static final String ATLAS_ENDPOINT = "atlas.rest.address";
   private static final String DEFAULT_ATLAS_URL = "http://localhost:21000/";
-  private static final String DEFAULT_CLUSTER_NAME = "primary";
+  private static final String DEFAULT_CLUSTER_NAME = "pinot";
   private static final String ATTRIBUTE_QUALIFIED_NAME = "qualifiedName";
-  private static final String PINOT_CLUSTER_NAME = "atlas.cluster.name";
+  private static final String ATTRIBUTE_CLUSTER_NAME = "clusterName";
+  public static final String ATTRIBUTE_INPUTS = "inputs";
+  public static final String ATTRIBUTE_OUTPUTS = "outputs";
+  private static final String PINOT_CLUSTER_NAME = "atlas.pinot.cluster.name";
   private static final String FORMAT_PINOT_TABLE_QUALIFIED_NAME = "%s@%s";
   private static final String FORMAT_PINOT_FIELD_QUALIFIED_NAME = "%s.%s@%s";
   private static final String NAME = "name";
@@ -87,6 +91,9 @@ public class PinotBridge {
   private static final String PINOT_JSON_TABLES = "tables";
   private static final String PINOT_JSON_REALTIME = "REALTIME";
   private static final String PINOT_JSON_OFFLINE = "OFFLINE";
+
+  private static final String PINOT_JSON_TABLEINDEXCONFIG = "tableIndexConfig";
+  private static final String PINOT_JSON_STREAMCONFIGS = "streamConfigs";
 
   private static final String PINOT_JSON_SEGMENTSCONFIG = "segmentsConfig";
   private static final String PINOT_JSON_RETENTIONTIMEUNIT = "retentionTimeUnit";
@@ -106,11 +113,14 @@ public class PinotBridge {
   private static final String PINOT_TABLE_ATTR_METRICFIELDSPECS = "metricFieldSpecs";
   private static final String PINOT_TABLE_ATTR_TIMEFIELDSPEC = "timeFieldSpec";
   private static final String PINOT_TABLE_ATTR_TIMEFIELD = "timeField";
-
+  private static final String PINOT_TABLE_INPUT = "realtime.kafka.topic";
+  private static final String PINOT_TABLE_INPUTTYPE = "realtime.streamType";
 
   // es rest url
   private static final String PINOT_REST_ADDRESS = "pinot.rest.address";
   private static final String DEFAULT_PINOT_REST_ADDRESS = "http://localhost:9000/tables";
+  private static final String ATLAS_PROCESS_CLUSTER = "atlas.process.cluster.name";
+  private static final String ATLAS_KAFKA_CLUSTER = "atlas.kafka.cluster.name";
 
   private static final TypeReference<HashMap<String, Object>> TYPE_MAP = new TypeReference<HashMap<String, Object>>() {
   };
@@ -119,17 +129,19 @@ public class PinotBridge {
   private final AtlasClientV2 atlasClientV2;
   private final Client client;
   private WebResource service;
+  private Configuration configuration;
 
   public PinotBridge(Configuration configuration, AtlasClientV2 atlasClientV2) {
     this.clusterName = configuration.getString(PINOT_CLUSTER_NAME, DEFAULT_CLUSTER_NAME);
     this.atlasClientV2 = atlasClientV2;
+    this.configuration = configuration;
 
     int readTimeout = configuration.getInt("atlas.client.readTimeoutMSecs", 60000);
     int connectTimeout = configuration.getInt("atlas.client.connectTimeoutMSecs", 60000);
     this.client = new Client();
     client.setReadTimeout(readTimeout);
     client.setConnectTimeout(connectTimeout);
-    String pinotAddress = configuration.getString(PINOT_REST_ADDRESS,DEFAULT_PINOT_REST_ADDRESS);
+    String pinotAddress = configuration.getString(PINOT_REST_ADDRESS, DEFAULT_PINOT_REST_ADDRESS);
     service = client.resource(pinotAddress);
 
   }
@@ -233,6 +245,11 @@ public class PinotBridge {
     importTables(tableList);
   }
 
+  /**
+   * import pinot table.
+   *
+   * @param tables to import
+   */
   public void importTables(List<String> tables) throws AtlasServiceException {
 
     for (String table : tables) {
@@ -246,17 +263,72 @@ public class PinotBridge {
       String schemaEntity = schemaResponse.getEntity(String.class);
       Map<String, Object> schemas = AtlasJson.fromJson(schemaEntity, TYPE_MAP);
       AtlasEntityWithExtInfo tableEntityInAtlas = findTableEntityInAtlas(table);
+      AtlasEntityWithExtInfo entityWithExtInfo;
       if (tableEntityInAtlas != null) {
-        AtlasEntityWithExtInfo entityWithExtInfo = getTable(table, tableEntityInAtlas.getEntity(),
+        entityWithExtInfo = getTable(table, tableEntityInAtlas.getEntity(),
             resultMap, schemas);
         updateInstanceInAtlas(entityWithExtInfo);
       } else {
-        AtlasEntityWithExtInfo entityWithExtInfo = getTable(table, null, resultMap, schemas);
-        createEntityInAtlas(entityWithExtInfo);
+        entityWithExtInfo = getTable(table, null, resultMap, schemas);
+        entityWithExtInfo = createEntityInAtlas(entityWithExtInfo);
+      }
+      // add process if not exists
+      AtlasEntity result = entityWithExtInfo.getEntity();
+      if (result.hasAttribute(PINOT_TABLE_INPUT)
+          && result.getAttribute(PINOT_TABLE_INPUT) != null) {
+        String topic = (String) result.getAttribute(PINOT_TABLE_INPUT);
+        String kafkaClusterName = configuration
+            .getString(ATLAS_KAFKA_CLUSTER, DEFAULT_CLUSTER_NAME);
+        String kafkaQualifiedName = getTopicQualifiedName(kafkaClusterName, topic);
+
+        AtlasEntityWithExtInfo inputEntity = null;
+        try {
+          inputEntity = findEntityInAtlas("kafka_topic", kafkaQualifiedName);
+        } catch (Exception e) {
+        }
+        if (inputEntity == null) {
+          LOG.warn("Topic {} does not exist in cluster {}.", topic, kafkaClusterName);
+        } else {
+          AtlasEntity kafkaEntity = inputEntity.getEntity();
+          String processClusterName = configuration
+              .getString(ATLAS_PROCESS_CLUSTER, DEFAULT_CLUSTER_NAME);
+          String processName = String.format("%s=>%s", topic, table);
+          String processType = "kafka_to_pinot";
+          String qualifiedName = String.format("%s=>%s@%s", topic, table, processClusterName);
+          AtlasEntityWithExtInfo processEntity;
+          try {
+            processEntity = findEntityInAtlas(processType, qualifiedName);
+          } catch (Exception e) {
+            processEntity = null;
+          }
+          if (processEntity == null) {
+            LOG.info("Create Process:{}", processName);
+            AtlasEntity processInst = new AtlasEntity(processType);
+            processInst.setAttribute(ATTRIBUTE_QUALIFIED_NAME, qualifiedName);
+            processInst.setAttribute("name", processName);
+            processInst.setAttribute(ATTRIBUTE_CLUSTER_NAME, processClusterName);
+            processEntity = new AtlasEntityWithExtInfo(processInst);
+            processInst.setAttribute(ATTRIBUTE_INPUTS,
+                AtlasTypeUtil.getAtlasObjectIds(Lists.newArrayList(kafkaEntity)));
+            processInst.setAttribute(ATTRIBUTE_OUTPUTS,
+                AtlasTypeUtil.getAtlasObjectIds(Lists.newArrayList(result)));
+            processInst.setAttribute("startTime", System.currentTimeMillis());
+            processInst.setAttribute("endTime", System.currentTimeMillis());
+            processInst.setAttribute("userName", System.getProperty("user.name"));
+            AtlasEntityWithExtInfo ret = createEntityInAtlas(processEntity);
+            if (ret != null) {
+              LOG.info("create process {} success.", processName);
+            }
+          }
+        }
       }
     }
   }
 
+
+  /**
+   * create table entity, contains realtime and offline cnofigs.
+   */
   @VisibleForTesting
   AtlasEntityWithExtInfo getTable(String tableName, AtlasEntity tableEntity,
       Map<String, Object> resultMap, Map<String, Object> schemas) {
@@ -269,21 +341,37 @@ public class PinotBridge {
     tableEntity.setAttribute(ATTRIBUTE_QUALIFIED_NAME, tableQualifiedName);
     tableEntity.setAttribute(NAME, tableName);
 
+    // realtime config
     if (resultMap.containsKey(PINOT_JSON_REALTIME)) {
       Map<String, Object> realtimeMap = (Map<String, Object>) resultMap.get(PINOT_JSON_REALTIME);
+
       Map<String, Object> realtimeSegmentsConfig = (Map<String, Object>) realtimeMap
           .get(PINOT_JSON_SEGMENTSCONFIG);
-      setConfigAttribute(tableEntity, PINOT_TABLE_ATTR_REALTIME, realtimeSegmentsConfig);
+      setSegmentAttribute(tableEntity, PINOT_TABLE_ATTR_REALTIME, realtimeSegmentsConfig);
       tableEntity
           .setAttribute(String.format("%s.%s", PINOT_TABLE_ATTR_REALTIME, PINOT_JSON_TABLENAME),
               realtimeMap.get(PINOT_JSON_TABLENAME));
+
+      // kafka source info
+      Map<String, Object> realtimeTableIndexConfig = (Map<String, Object>) realtimeMap
+          .get(PINOT_JSON_TABLEINDEXCONFIG);
+      if (realtimeTableIndexConfig.containsKey(PINOT_JSON_STREAMCONFIGS)) {
+        Map<String, Object> streamConfigs = (Map<String, Object>) realtimeTableIndexConfig
+            .get(PINOT_JSON_STREAMCONFIGS);
+        tableEntity.setAttribute(PINOT_TABLE_INPUTTYPE, streamConfigs.get("streamType"));
+        tableEntity
+            .setAttribute(PINOT_TABLE_INPUT, streamConfigs.get("stream.kafka.topic.name"));
+        tableEntity.setAttribute("realtime.kafka.group.id",
+            streamConfigs.get("stream.kafka.group.id"));
+      }
     }
 
+    // offline config
     if (resultMap.containsKey(PINOT_JSON_OFFLINE)) {
       Map<String, Object> realtimeMap = (Map<String, Object>) resultMap.get(PINOT_JSON_OFFLINE);
       Map<String, Object> offlineSegmentsConfig = (Map<String, Object>) realtimeMap
           .get(PINOT_JSON_SEGMENTSCONFIG);
-      setConfigAttribute(tableEntity, PINOT_TABLE_ATTR_OFFLINE, offlineSegmentsConfig);
+      setSegmentAttribute(tableEntity, PINOT_TABLE_ATTR_OFFLINE, offlineSegmentsConfig);
       tableEntity
           .setAttribute(String.format("%s.%s", PINOT_TABLE_ATTR_OFFLINE, PINOT_JSON_TABLENAME),
               realtimeMap.get(PINOT_JSON_TABLENAME));
@@ -389,7 +477,15 @@ public class PinotBridge {
   }
 
 
-  private AtlasEntity setConfigAttribute(AtlasEntity tableEntity, String tableType,
+  /**
+   * set realtime and offline segmentsconfig.
+   *
+   * @param tableEntity entyty to set
+   * @param tableType realtime or offline
+   * @param map segmentsconfig map
+   * @return entity result
+   */
+  private AtlasEntity setSegmentAttribute(AtlasEntity tableEntity, String tableType,
       Map<String, Object> map) {
     tableEntity.setAttribute(
         String
@@ -512,6 +608,11 @@ public class PinotBridge {
         .format(FORMAT_PINOT_FIELD_QUALIFIED_NAME, table.toLowerCase(), field.toLowerCase(),
             clusterName);
   }
+
+  private String getTopicQualifiedName(String metadataNamespace, String topic) {
+    return String.format("%s@%s", topic.toLowerCase(), metadataNamespace);
+  }
+
 
   static void printUsage() {
     System.out.println("Usage 1: import-pinot-rest.sh");

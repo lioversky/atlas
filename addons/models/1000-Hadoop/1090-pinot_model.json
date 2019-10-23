@@ -76,6 +76,30 @@
           "isUnique": false
         },
         {
+          "name": "realtime.streamType",
+          "typeName": "string",
+          "cardinality": "SINGLE",
+          "isIndexable": false,
+          "isOptional": true,
+          "isUnique": false
+        },
+        {
+          "name": "realtime.kafka.topic",
+          "typeName": "string",
+          "cardinality": "SINGLE",
+          "isIndexable": false,
+          "isOptional": true,
+          "isUnique": false
+        },
+        {
+          "name": "stream.kafka.group.id",
+          "typeName": "string",
+          "cardinality": "SINGLE",
+          "isIndexable": false,
+          "isOptional": true,
+          "isUnique": false
+        },
+        {
           "name": "offline.tableName",
           "typeName": "string",
           "cardinality": "SINGLE",
