@@ -89,7 +89,15 @@
           "isUnique": true
         },
         {
-          "name": "metrics",
+          "name": "readMetrics",
+          "typeName": "map<string,long>",
+          "cardinality": "SINGLE",
+          "isIndexable": false,
+          "isOptional": true,
+          "isUnique": false
+        },
+        {
+          "name": "writeMetrics",
           "typeName": "map<string,long>",
           "cardinality": "SINGLE",
           "isIndexable": false,

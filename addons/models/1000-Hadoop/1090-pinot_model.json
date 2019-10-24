@@ -92,14 +92,6 @@
           "isUnique": false
         },
         {
-          "name": "stream.kafka.group.id",
-          "typeName": "string",
-          "cardinality": "SINGLE",
-          "isIndexable": false,
-          "isOptional": true,
-          "isUnique": false
-        },
-        {
           "name": "offline.tableName",
           "typeName": "string",
           "cardinality": "SINGLE",

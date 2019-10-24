@@ -118,7 +118,7 @@
       "superTypes": [
         "Process"
       ],
-      "serviceType": "databus",
+      "serviceType": "pinot",
       "typeVersion": "1.0",
       "attributeDefs": [
         {
