@@ -18,8 +18,7 @@
 
 define(['require',
     'backbone',
-    'hbs!tmpl/quality/ProcessTableLayoutView_tmpl',
-    'collection/VProcessList',
+    'hbs!tmpl/quality/DatasetTableLayoutView_tmpl',
     'collection/VEntityList',
     'modules/Modal',
     'utils/Utils',
@@ -28,23 +27,26 @@ define(['require',
     'utils/Globals',
     'utils/Enums',
     'utils/UrlLinks'
-], function(require, Backbone, ProcessTableLayoutViewTmpl, VProcessList, VEntityList, Modal, Utils, CommonViewFunction, Messages, Globals, Enums, UrlLinks) {
+], function(require, Backbone, DatasetTableLayoutViewTmpl, VEntityList, Modal, Utils, CommonViewFunction, Messages, Globals, Enums, UrlLinks) {
     'use strict';
 
-    var ProcessTableLayoutView = Backbone.Marionette.LayoutView.extend(
-        /** @lends ProcessTableLayoutView */
+    var DatasetTableLayoutView = Backbone.Marionette.LayoutView.extend(
+        /** @lends DatasetTableLayoutView */
         {
-            _viewName: 'ProcessTableLayoutView',
+            _viewName: 'DatasetTableLayoutView',
 
-            template: ProcessTableLayoutViewTmpl,
+            template: DatasetTableLayoutViewTmpl,
 
             /** Layout sub regions */
             regions: {
-                RProcessTableLayoutView: "#r_processTableLayoutView",
+                RDatasetTableLayoutView: "#r_datasetTableLayoutView",
             },
             /** ui selector cache */
             ui: {
-                processName: '[data-id="processName"]'
+                tagClick: '[data-id="tagClick"]',
+                addTag: "[data-id='addTag']",
+                addAssignTag: "[data-id='addAssignTag']",
+                datasetName: '[data-id="datasetName"]'
             },
             /** ui events hash */
             events: function() {
@@ -53,18 +55,18 @@ define(['require',
                 return events;
             },
             /**
-             * intialize a new ProcessTableLayoutView Layout
+             * intialize a new DatasetTableLayoutView Layout
              * @constructs
              */
             initialize: function(options) {
                 _.extend(this, _.pick(options, 'guid', 'nodeInfo', 'fetchCollection'));
-                this.processCollection = new VEntityList();
-                this.processTableAttribute = ["id", "startTime", "duration",
-                "numOutputRows", "numOutputBytes", "readMetrics"];
-                this.processCollection.url = UrlLinks.entityCollectionaudit(this.guid);
-                this.processCollection.modelAttrName = "events";
+                this.datasetCollection = new VEntityList();
+                this.datasetTableAttribute = ["id", "startTime", "duration",
+                    "numOutputRows", "numOutputBytes", "readMetrics"];
+                this.datasetCollection.url = UrlLinks.entityCollectionaudit(this.guid);
+                this.datasetCollection.modelAttrName = "events";
                 this.commonTableOptions = {
-                    collection: this.processCollection,
+                    collection: this.datasetCollection,
                     includeFilter: false,
                     includePagination: true,
                     includePageSize: true,
@@ -82,41 +84,42 @@ define(['require',
                 this.bradCrumbList = [];
                 var that = this,
                     modalObj = {
-                      title: 'Process Quality',
-                      content: this,
-                      okText: 'OK',
-                      okCloses: true,
-                      mainClass: 'modal-lg',
-                      allowCancel: true,
+                        title: 'Dataset Quality',
+                        content: this,
+                        okText: 'OK',
+                        okCloses: true,
+                        mainClass: 'modal-lg',
+                        allowCancel: true,
                     };
                 this.modal = new Modal(modalObj)
                 this.modal.open();
-              this.modal.$el.find('button.cancel').remove();
+                this.modal.$el.find('button.cancel').remove();
                 this.on('ok', function() {
-                  this.modal.trigger('cancel');
+                    this.modal.trigger('cancel');
                 });
                 this.on('closeModal', function() {
-                  this.modal.trigger('cancel');
+                    this.modal.trigger('cancel');
                 });
             },
             onRender: function() {
-              $.extend(this.processCollection.queryParams, { count: this.limit });
+                $.extend(this.datasetCollection.queryParams, { count: this.limit });
                 this.fetchCollection();
             },
             fetchCollection: function(options) {
-              var that = this;
-              this.$('.fontLoader').show();
-              this.$('.tableOverlay').show();
+                var that = this;
+                this.$('.fontLoader').show();
+                this.$('.tableOverlay').show();
 
-              this.processCollection.fetch({
-                success: function() {
-                  that.processCollection.sort();
-                  that.renderTableLayoutView();
-                  that.$('.fontLoader').hide();
-                  that.$('.tableOverlay').hide();
-                },
-                silent: true
-              });
+                this.datasetCollection.fetch({
+                    success: function() {
+
+                        that.datasetCollection.sort();
+                        that.renderTableLayoutView();
+                        that.$('.fontLoader').hide();
+                        that.$('.tableOverlay').hide();
+                    },
+                    silent: true
+                });
             },
             showLoader: function() {
                 this.$('.fontLoader').show();
@@ -132,12 +135,12 @@ define(['require',
                 this.$('.overlay').removeClass('show').addClass('hide');
             },
             renderTableLayoutView: function() {
-                this.ui.processName.html(this.nodeInfo.name);
+                this.ui.datasetName.html(this.nodeInfo.name);
                 var that = this;
                 require(['utils/TableLayout'], function(TableLayout) {
                     var columnCollection = Backgrid.Columns.extend({}),
-                        columns = new columnCollection(that.getProcessTableColumns());
-                    that.RProcessTableLayoutView.show(new TableLayout(_.extend({}, that.commonTableOptions, {
+                        columns = new columnCollection(that.getDatasetTableColumns());
+                    that.RDatasetTableLayoutView.show(new TableLayout(_.extend({}, that.commonTableOptions, {
                         columns: columns
                     })));
                     that.$('.multiSelectTag').hide();
@@ -154,41 +157,41 @@ define(['require',
                     });
                 });
             },
-            getProcessTableColumns: function() {
+            getDatasetTableColumns: function() {
                 var that = this,
                     col = {
-                      user: {
-                        label: "Users",
-                        cell: "html",
-                        editable: false,
-                      },
-                      timestamp: {
-                        label: "Timestamp",
-                        cell: "html",
-                        editable: false,
-                        formatter: _.extend({}, Backgrid.CellFormatter.prototype, {
-                          fromRaw: function(rawValue, model) {
-                            return new Date(rawValue);
-                          }
-                        })
-                      },
-                      action: {
-                        label: "Actions",
-                        cell: "html",
-                        editable: false,
-                        formatter: _.extend({}, Backgrid.CellFormatter.prototype, {
-                          fromRaw: function(rawValue, model) {
-                            if (Enums.auditAction[rawValue]) {
-                              return Enums.auditAction[rawValue];
-                            } else {
-                              return rawValue;
-                            }
-                          }
-                        })
-                      }
+                        user: {
+                            label: "Users",
+                            cell: "html",
+                            editable: false,
+                        },
+                        timestamp: {
+                            label: "Timestamp",
+                            cell: "html",
+                            editable: false,
+                            formatter: _.extend({}, Backgrid.CellFormatter.prototype, {
+                                fromRaw: function(rawValue, model) {
+                                    return new Date(rawValue);
+                                }
+                            })
+                        },
+                        action: {
+                            label: "Actions",
+                            cell: "html",
+                            editable: false,
+                            formatter: _.extend({}, Backgrid.CellFormatter.prototype, {
+                                fromRaw: function(rawValue, model) {
+                                    if (Enums.auditAction[rawValue]) {
+                                        return Enums.auditAction[rawValue];
+                                    } else {
+                                        return rawValue;
+                                    }
+                                }
+                            })
+                        }
                     }
-                return this.processCollection.constructor.getTableCols(col, this.processCollection);
+                return this.datasetCollection.constructor.getTableCols(col, this.datasetCollection);
             }
         });
-    return ProcessTableLayoutView;
+    return DatasetTableLayoutView;
 });

@@ -858,7 +858,7 @@ define(['require',
                     guid = options.guid,
                     initialData = that.guidEntityMap[guid],
                     typeName = initialData.typeName || guid,
-                    activeEntityDef = this.entityDefCollection.fullCollection.find({ name: collectionJSON.typeName }),
+                    activeEntityDef = this.entityDefCollection.fullCollection.find({ name: typeName }),
                     attributeDefs = that.g._nodes[guid] && that.g._nodes[guid].entityDef ? that.g._nodes[guid].entityDef.attributeDefs : null;
                 var config = {
                     guid: 'guid',
@@ -882,7 +882,8 @@ define(['require',
                     }
                 });
                 var superTypes = Utils.getNestedSuperTypes({ data: activeEntityDef.toJSON(), collection: this.entityDefCollection });
-                var isProcess = _.find(superTypes, function(type) {
+                var isProcess = false;
+                _.find(superTypes, function(type) {
                     if (type === "Process") {
                         isProcess = true;
                     }
@@ -898,8 +899,8 @@ define(['require',
                         });
                     });
                 } else {
-                    require(['views/graph/DatasetQuality'], function(DatasetQuality) {
-                        var view = new DatasetQuality({
+                    require(['views/quality/DatasetTableLayoutView'], function(DatasetTableLayoutView) {
+                        var view = new DatasetTableLayoutView({
                             nodeInfo: data,
                             lineageData: that.lineageData,
                             apiGuid: that.apiGuid,
