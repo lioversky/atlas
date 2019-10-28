@@ -64,7 +64,6 @@ define(['require',
                 nodeDetailTable: '[data-id="nodeDetailTable"]',
                 showOnlyHoverPath: '[data-id="showOnlyHoverPath"]',
                 showTooltip: '[data-id="showTooltip"]',
-                saveSvg: '[data-id="saveSvg"]',
                 resetLineage: '[data-id="resetLineage"]'
             },
             templateHelpers: function() {
@@ -84,7 +83,6 @@ define(['require',
                 events["click " + this.ui.settingToggler] = 'onClickSettingToggler';
                 events["click " + this.ui.qualityFullscreenToggler] = 'onClickLineageFullscreenToggler';
                 events["click " + this.ui.searchToggler] = 'onClickSearchToggler';
-                events["click " + this.ui.saveSvg] = 'onClickSaveSvg';
                 events["click " + this.ui.resetLineage] = 'onClickResetLineage';
                 return events;
             },
@@ -137,10 +135,6 @@ define(['require',
 
                 }
 
-                if (platform.name === "Microsoft Edge" || platform.name === "IE") {
-                    $(that.ui.saveSvg).hide();
-
-                }
                 if (this.layoutRendered) {
                     this.layoutRendered();
                 }
@@ -625,106 +619,13 @@ define(['require',
                 render(svgGroup, this.g);
                 svg.on("dblclick.zoom", null)
                 // .on("wheel.zoom", null);
-                //change text postion 
+                //change text postion
                 svgGroup.selectAll("g.nodes g.label")
                     .attr("transform", "translate(0,0)");
                 var waitForDoubleClick = null;
                 svgGroup.selectAll("g.nodes g.node")
-                    .on('mouseenter', function(d) {
-                        that.activeNode = true;
-                        var matrix = this.getScreenCTM()
-                            .translate(+this.getAttribute("cx"), +this.getAttribute("cy"));
-                        that.$('svg').find('.node').removeClass('active');
-                        $(this).addClass('active');
-
-                        // Fix
-                        var width = $('body').width();
-                        var currentELWidth = $(this).offset();
-                        var direction = 'e';
-                        if (((width - currentELWidth.left) < 330)) {
-                            direction = (((width - currentELWidth.left) < 330) && ((currentELWidth.top) < 400)) ? 'sw' : 'w';
-                            if (((width - currentELWidth.left) < 330) && ((currentELWidth.top) > 600)) {
-                                direction = 'nw';
-                            }
-                        } else if (((currentELWidth.top) > 600)) {
-                            direction = (((width - currentELWidth.left) < 330) && ((currentELWidth.top) > 600)) ? 'nw' : 'n';
-                            if ((currentELWidth.left) < 50) {
-                                direction = 'ne'
-                            }
-                        } else if ((currentELWidth.top) < 400) {
-                            direction = ((currentELWidth.left) < 50) ? 'se' : 's';
-                        }
-                        if (that.ui.showTooltip.prop('checked')) {
-                            tooltip.direction(direction).show(d);
-                        }
-
-                        if (!that.ui.showOnlyHoverPath.prop('checked')) {
-                            return;
-                        }
-                        that.$('svg').addClass('hover');
-                        var nextNode = that.g.successors(d),
-                            previousNode = that.g.predecessors(d),
-                            nodesToHighlight = nextNode.concat(previousNode);
-                        LineageUtils.onHoverFade({
-                            opacity: 0.3,
-                            selectedNode: d,
-                            highlight: nodesToHighlight,
-                            svg: that.svg
-                        }).init();
-                    })
-                    .on('mouseleave', function(d) {
-                        that.activeNode = false;
-                        var nodeEL = this;
-                        setTimeout(function(argument) {
-                            if (!(that.activeTip || that.activeNode)) {
-                                $(nodeEL).removeClass('active');
-                                if (that.ui.showTooltip.prop('checked')) {
-                                    tooltip.hide(d);
-                                }
-                            }
-                        }, 150);
-                        if (!that.ui.showOnlyHoverPath.prop('checked')) {
-                            return;
-                        }
-                        that.$('svg').removeClass('hover');
-                        that.$('svg').removeClass('hover-active');
-                        LineageUtils.onHoverFade({
-                            opacity: 1,
-                            selectedNode: d,
-                            svg: that.svg
-                        }).init();
-                    })
                     .on('click', function(d) {
-                        var el = this;
-                        if (d3.event.defaultPrevented) return; // ignore drag
-                        d3.event.preventDefault();
-
-                        if (waitForDoubleClick != null) {
-                            clearTimeout(waitForDoubleClick)
-                            waitForDoubleClick = null;
-                            tooltip.hide(d);
-                            if (that.guid == d) {
-                                Utils.notifyInfo({
-                                    html: true,
-                                    content: "You are already on " + "<b>" + that.entityName + "</b> detail page."
-                                });
-                            } else {
-                                Utils.setUrl({
-                                    url: '#!/detailPage/' + d + '?tabActive=quality',
-                                    mergeBrowserUrl: false,
-                                    trigger: true
-                                });
-                            }
-                        } else {
-                            var currentEvent = d3.event
-                            waitForDoubleClick = setTimeout(function() {
-                                tooltip.hide(d);
-                                that.onClickNodeToggler({ obj: d });
-                                $(el).find('circle').addClass('node-detail-highlight');
-                                that.updateRelationshipDetails({ guid: d });
-                                waitForDoubleClick = null;
-                            }, 170)
-                        }
+                        that.onClickQualityNode({guid: d})
                     });
 
                 $('body').on('mouseover', '.d3-tip', function(el) {
@@ -832,42 +733,6 @@ define(['require',
                     that.ui.qualityTypeSearch.trigger("change.select2");
                 }
             },
-            updateRelationshipDetails: function(options) {
-                var that = this,
-                    guid = options.guid,
-                    initialData = that.guidEntityMap[guid],
-                    typeName = initialData.typeName || guid,
-                    attributeDefs = that.g._nodes[guid] && that.g._nodes[guid].entityDef ? that.g._nodes[guid].entityDef.attributeDefs : null;
-                this.$("[data-id='typeName']").text(typeName);
-                this.entityModel = new VEntity({});
-                var config = {
-                    guid: 'guid',
-                    typeName: 'typeName',
-                    name: 'name',
-                    qualifiedName: 'qualifiedName',
-                    owner: 'owner',
-                    createTime: 'createTime',
-                    status: 'status',
-                    classificationNames: 'classifications',
-                    meanings: 'term'
-                };
-                var data = {};
-                _.each(config, function(valKey, key) {
-                    var val = initialData[key];
-                    if (_.isUndefined(val) && initialData.attributes[key]) {
-                        val = initialData.attributes[key];
-                    }
-                    if (val) {
-                        data[valKey] = val;
-                    }
-                });
-                this.ui.nodeDetailTable.html(CommonViewFunction.propertyTable({
-                    "scope": this,
-                    "valueObject": data,
-                    "attributeDefs": attributeDefs,
-                    "sortBy": false
-                }));
-            },
             onClickSaveSvg: function(e, a) {
                 var that = this;
                 var loaderTargetDiv = $(e.currentTarget).find('>i');
@@ -878,7 +743,6 @@ define(['require',
                     });
                     return false; // return if the quality is not loaded.
                 }
-
 
                 that.toggleLoader(loaderTargetDiv);
                 Utils.notifyInfo({
@@ -987,6 +851,61 @@ define(['require',
                 var el = options.el;
                 if (el && el.prop) {
                     el.prop("disabled", !el.prop("disabled"));
+                }
+            },
+            onClickQualityNode: function (options) {
+                var that = this,
+                    guid = options.guid,
+                    initialData = that.guidEntityMap[guid],
+                    typeName = initialData.typeName || guid,
+                    activeEntityDef = this.entityDefCollection.fullCollection.find({ name: collectionJSON.typeName }),
+                    attributeDefs = that.g._nodes[guid] && that.g._nodes[guid].entityDef ? that.g._nodes[guid].entityDef.attributeDefs : null;
+                var config = {
+                    guid: 'guid',
+                    typeName: 'typeName',
+                    name: 'name',
+                    qualifiedName: 'qualifiedName',
+                    owner: 'owner',
+                    createTime: 'createTime',
+                    status: 'status',
+                    classificationNames: 'classifications',
+                    meanings: 'term'
+                };
+                var data = {};
+                _.each(config, function(valKey, key) {
+                    var val = initialData[key];
+                    if (_.isUndefined(val) && initialData.attributes[key]) {
+                        val = initialData.attributes[key];
+                    }
+                    if (val) {
+                        data[valKey] = val;
+                    }
+                });
+                var superTypes = Utils.getNestedSuperTypes({ data: activeEntityDef.toJSON(), collection: this.entityDefCollection });
+                var isProcess = _.find(superTypes, function(type) {
+                    if (type === "Process") {
+                        isProcess = true;
+                    }
+                });
+                if(isProcess){
+                    require(['views/quality/ProcessTableLayoutView'], function(ProcessTableLayoutView) {
+                        var view = new ProcessTableLayoutView({
+                            guid: options.guid,
+                            nodeInfo: data,
+                            lineageData: that.lineageData,
+                            apiGuid: that.apiGuid,
+                            detailPageFetchCollection: that.fetchCollection
+                        });
+                    });
+                } else {
+                    require(['views/graph/DatasetQuality'], function(DatasetQuality) {
+                        var view = new DatasetQuality({
+                            nodeInfo: data,
+                            lineageData: that.lineageData,
+                            apiGuid: that.apiGuid,
+                            detailPageFetchCollection: that.fetchCollection
+                        });
+                    });
                 }
             }
         });
