@@ -61,8 +61,7 @@ define(['require',
                 this.processCollection = new VEntityList();
                 this.processTableAttribute = ["id", "startTime", "duration",
                 "numOutputRows", "numOutputBytes", "readMetrics"];
-                this.processCollection.url = UrlLinks.entityCollectionaudit(this.guid);
-                this.processCollection.modelAttrName = "events";
+
                 this.commonTableOptions = {
                     collection: this.processCollection,
                     includeFilter: false,
@@ -105,18 +104,26 @@ define(['require',
             },
             fetchCollection: function(options) {
               var that = this;
+              var queryParam = {
+                relation: "jobs",
+                guid: this.guid,
+                sortBy: "endTime",
+                sortOrder: "DESCENDING"
+              }
               this.$('.fontLoader').show();
               this.$('.tableOverlay').show();
 
-              this.processCollection.fetch({
-                success: function() {
-                  that.processCollection.sort();
+              this.processCollection.getProcess({
+                skipDefaultError: true,
+                queryParam: queryParam,
+                success: function(data) {
+                  // that.processCollection.sort();
                   that.renderTableLayoutView();
                   that.$('.fontLoader').hide();
                   that.$('.tableOverlay').hide();
-                },
-                silent: true
-              });
+                }
+              })
+
             },
             showLoader: function() {
                 this.$('.fontLoader').show();
@@ -158,31 +165,57 @@ define(['require',
                 var that = this,
                     col = {
                       user: {
-                        label: "Users",
+                        label: "Id",
                         cell: "html",
                         editable: false,
                       },
-                      timestamp: {
-                        label: "Timestamp",
+                      startTime: {
+                        label: "StartTime",
                         cell: "html",
                         editable: false,
                         formatter: _.extend({}, Backgrid.CellFormatter.prototype, {
                           fromRaw: function(rawValue, model) {
-                            return new Date(rawValue);
+                            return new Date(model.get('attributes')["endTime"]-model.get('attributes')["durationMs"]);
                           }
                         })
                       },
-                      action: {
-                        label: "Actions",
+                      duration: {
+                        label: "DurationMs",
                         cell: "html",
                         editable: false,
                         formatter: _.extend({}, Backgrid.CellFormatter.prototype, {
                           fromRaw: function(rawValue, model) {
-                            if (Enums.auditAction[rawValue]) {
-                              return Enums.auditAction[rawValue];
-                            } else {
-                              return rawValue;
-                            }
+                            return model.get('attributes')["durationMs"];
+                          }
+                        })
+                      },
+                      numOutputRows: {
+                        label: "NumOutputRows",
+                        cell: "html",
+                        editable: false,
+                        formatter: _.extend({}, Backgrid.CellFormatter.prototype, {
+                          fromRaw: function(rawValue, model) {
+                            return model.get('attributes')["writeMetrics"]["numOutputRows"];
+                          }
+                        })
+                      },
+                      numOutputBytes: {
+                        label: "NumOutputRows",
+                        cell: "html",
+                        editable: false,
+                        formatter: _.extend({}, Backgrid.CellFormatter.prototype, {
+                          fromRaw: function(rawValue, model) {
+                            return model.get('attributes')["writeMetrics"]["numOutputBytes"];
+                          }
+                        })
+                      },
+                      readMetrics: {
+                        label: "NumOutputRows",
+                        cell: "html",
+                        editable: false,
+                        formatter: _.extend({}, Backgrid.CellFormatter.prototype, {
+                          fromRaw: function(rawValue, model) {
+                            return model.get('attributes')["readMetrics"];
                           }
                         })
                       }

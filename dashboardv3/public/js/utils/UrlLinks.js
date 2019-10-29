@@ -220,6 +220,9 @@ define(['require', 'utils/Enums', 'utils/Utils', 'underscore'], function(require
         },
         sessionApiUrl: function() {
             return this.baseUrl + '/admin/session';
+        },
+        qualityApiUrl: function() {
+            return this.baseUrlV2 + '/quality';
         }
 
     });

@@ -32,34 +32,15 @@ define(['require',
                 this.modelName = 'VProcess';
                 this.modelAttrName = 'results';
             },
-            parseRecords: function(resp, options) {
-                try {
-                    if (!this.modelAttrName) {
-                        throw new Error("this.modelAttrName not defined for " + this);
-                    }
-                    this.keyList = resp[this.modelAttrName].dataType.attributeDefinitions;
-                    if (resp[this.modelAttrName].dataType.superTypes) {
-                        if (resp[this.modelAttrName].dataType.superTypes.indexOf("Asset") != -1) {
-                            this.keyList.push({
-                                "name": "name",
-                                "dataTypeName": "string",
-                                "isComposite": false,
-                                "isIndexable": true,
-                                "isUnique": false,
-                                "multiplicity": {},
-                                "reverseAttributeName": null
-                            })
-                        }
-                    }
-                    var arr = [];
-                    resp[this.modelAttrName].rows.forEach(function(d) {
-                        arr.push(d);
-                    });
-                    return arr;
-                } catch (e) {
-                    console.log(e);
-                }
-            },
+            getProcess: function(options){
+                var url = UrlLinks.qualityApiUrl() + "/process";
+                options = _.extend({
+                    contentType: 'application/json',
+                    dataType: 'json'
+                }, options);
+
+                return this.constructor.nonCrudOperation.call(this, url, 'GET', options);
+            }
         },
         //Static Class Members
         {

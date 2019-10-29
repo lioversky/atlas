@@ -127,7 +127,8 @@ define(['require',
             },
             onRender: function() {
                 var that = this;
-                this.fetchGraphData();
+                this.fetchGraphData(
+                    {queryParam: {'direction': "input", 'depth': -1}});
 
 
                 if (platform.name === "IE") {
