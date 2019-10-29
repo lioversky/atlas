@@ -901,6 +901,7 @@ define(['require',
                 } else {
                     require(['views/quality/DatasetTableLayoutView'], function(DatasetTableLayoutView) {
                         var view = new DatasetTableLayoutView({
+                            guid: options.guid,
                             nodeInfo: data,
                             lineageData: that.lineageData,
                             apiGuid: that.apiGuid,
