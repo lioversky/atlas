@@ -20,15 +20,15 @@ package org.apache.atlas.discovery;
 
 import javax.inject.Inject;
 import org.apache.atlas.SortOrder;
+import org.apache.atlas.annotation.GraphTransaction;
 import org.apache.atlas.exception.AtlasBaseException;
 import org.apache.atlas.model.discovery.AtlasSearchResult;
 import org.apache.atlas.model.instance.AtlasEntity.AtlasEntitiesWithExtInfo;
 import org.apache.atlas.model.instance.AtlasEntityHeader;
 import org.apache.atlas.repository.store.graph.AtlasEntityStore;
+import org.springframework.stereotype.Component;
 
-/**
- * Create by hongxun on 2019/10/29
- */
+@Component
 public class EntityQualityService implements AtlasQualityService {
 
 
@@ -43,6 +43,7 @@ public class EntityQualityService implements AtlasQualityService {
   }
 
   @Override
+  @GraphTransaction
   public AtlasEntitiesWithExtInfo searchProcessQualities(String guid, String relation,
       String sortByAttribute, SortOrder sortOrder, boolean excludeDeletedEntities, int limit,
       int offset) throws AtlasBaseException {
