@@ -20,7 +20,6 @@ define(['require',
     'backbone',
     'hbs!tmpl/quality/ProcessTableLayoutView_tmpl',
     'collection/VProcessList',
-    'collection/VEntityList',
     'modules/Modal',
     'utils/Utils',
     'utils/CommonViewFunction',
@@ -28,7 +27,7 @@ define(['require',
     'utils/Globals',
     'utils/Enums',
     'utils/UrlLinks'
-], function(require, Backbone, ProcessTableLayoutViewTmpl, VProcessList, VEntityList, Modal, Utils, CommonViewFunction, Messages, Globals, Enums, UrlLinks) {
+], function(require, Backbone, ProcessTableLayoutViewTmpl, VProcessList, Modal, Utils, CommonViewFunction, Messages, Globals, Enums, UrlLinks) {
     'use strict';
 
     var ProcessTableLayoutView = Backbone.Marionette.LayoutView.extend(
@@ -58,7 +57,7 @@ define(['require',
              */
             initialize: function(options) {
                 _.extend(this, _.pick(options, 'guid', 'nodeInfo', 'fetchCollection'));
-                this.processCollection = new VEntityList();
+                this.processCollection = new VProcessList();
                 this.processTableAttribute = ["id", "startTime", "duration",
                 "numOutputRows", "numOutputBytes", "readMetrics"];
 
@@ -104,25 +103,40 @@ define(['require',
             },
             fetchCollection: function(options) {
               var that = this;
-              var queryParam = {
-                relation: "jobs",
-                guid: this.guid,
-                sortBy: "endTime",
-                sortOrder: "DESCENDING"
-              }
-              this.$('.fontLoader').show();
-              this.$('.tableOverlay').show();
+              if("spark_process" == that.nodeInfo.typeName){
 
-              this.processCollection.getProcess({
-                skipDefaultError: true,
-                queryParam: queryParam,
-                success: function(data) {
-                  // that.processCollection.sort();
-                  that.renderTableLayoutView();
-                  that.$('.fontLoader').hide();
-                  that.$('.tableOverlay').hide();
+                var sortBy = "endTime",
+                    query = "from spark_job where process.__guid='" + this.guid
+                        + "' select endTime,writeMetrics,readMetrics,id,durationMs orderby " + sortBy + " desc"
+                var queryParam = {
+                  query: query,
+                  limit: 20,
+                  offset: 0
                 }
-              })
+                this.$('.fontLoader').show();
+                this.$('.tableOverlay').show();
+
+                this.processCollection.getProcess({
+                  skipDefaultError: true,
+                  queryParam: queryParam,
+                  success: function (data) {
+                    if (data.attributes) {
+                      var names = data.attributes.name
+                      _.each(data.attributes.values, function (attrs) {
+                        var attributes = {}
+                        _.each(attrs, function (attr, index) {
+                          attributes[names[index]] = attr
+                        })
+                        that.processCollection.push({attributes: attributes});
+                      })
+                    }
+
+                    that.renderTableLayoutView();
+                    that.$('.fontLoader').hide();
+                    that.$('.tableOverlay').hide();
+                  }
+                })
+              }
 
             },
             showLoader: function() {
@@ -164,18 +178,29 @@ define(['require',
             getProcessTableColumns: function() {
                 var that = this,
                     col = {
-                      user: {
-                        label: "Id",
-                        cell: "html",
-                        editable: false,
-                      },
+                      // id: {
+                      //   label: "Id",
+                      //   cell: "html",
+                      //   editable: false,
+                      //   formatter: _.extend({}, Backgrid.CellFormatter.prototype, {
+                      //     fromRaw: function(rawValue, model) {
+                      //       return model.get('attributes')["id"];
+                      //     }
+                      //   })
+                      // },
                       startTime: {
                         label: "StartTime",
                         cell: "html",
                         editable: false,
                         formatter: _.extend({}, Backgrid.CellFormatter.prototype, {
                           fromRaw: function(rawValue, model) {
-                            return new Date(model.get('attributes')["endTime"]-model.get('attributes')["durationMs"]);
+                            if (model.get('attributes')["endTime"] && model.get(
+                                'attributes')["durationMs"]) {
+                              return new Date(model.get('attributes')["endTime"]
+                                  - model.get('attributes')["durationMs"]);
+                            } else {
+                              return null;
+                            }
                           }
                         })
                       },
@@ -184,8 +209,12 @@ define(['require',
                         cell: "html",
                         editable: false,
                         formatter: _.extend({}, Backgrid.CellFormatter.prototype, {
-                          fromRaw: function(rawValue, model) {
-                            return model.get('attributes')["durationMs"];
+                          fromRaw: function (rawValue, model) {
+                            if (model.get('attributes')["durationMs"]) {
+                              return model.get('attributes')["durationMs"];
+                            } else {
+                              return null;
+                            }
                           }
                         })
                       },
@@ -195,27 +224,58 @@ define(['require',
                         editable: false,
                         formatter: _.extend({}, Backgrid.CellFormatter.prototype, {
                           fromRaw: function(rawValue, model) {
-                            return model.get('attributes')["writeMetrics"]["numOutputRows"];
+                            if (model.get('attributes')["writeMetrics"]) {
+                              return model.get(
+                                  'attributes')["writeMetrics"]["numOutputRows"];
+                            } else if (model.get('attributes')["metrics"]) {
+                              return model.get(
+                                  'attributes')["metrics"]["write.numOutputRows"];
+                            } else {
+                              return null;
+                            }
                           }
                         })
                       },
                       numOutputBytes: {
-                        label: "NumOutputRows",
+                        label: "numOutputBytes",
                         cell: "html",
                         editable: false,
                         formatter: _.extend({}, Backgrid.CellFormatter.prototype, {
                           fromRaw: function(rawValue, model) {
-                            return model.get('attributes')["writeMetrics"]["numOutputBytes"];
+                            if (model.get('attributes')["writeMetrics"]) {
+                              return model.get(
+                                  'attributes')["writeMetrics"]["numOutputBytes"];
+                            } else if (model.get('attributes')["metrics"]) {
+                              return model.get(
+                                  'attributes')["metrics"]["write.numOutputBytes"];
+                            } else {
+                              return null;
+                            }
                           }
                         })
                       },
                       readMetrics: {
-                        label: "NumOutputRows",
+                        label: "readMetrics",
                         cell: "html",
                         editable: false,
                         formatter: _.extend({}, Backgrid.CellFormatter.prototype, {
                           fromRaw: function(rawValue, model) {
-                            return model.get('attributes')["readMetrics"];
+                            if(model.get('attributes')["readMetrics"])
+                            return JSON.stringify(model.get('attributes')["readMetrics"]);
+                            else {
+                              var readStr = ""
+                              _.each(_.keys(model.get('attributes')["metrics"]), function(key) {
+                                if (!(key.lastIndexOf("write", 0) === 0)) {
+                                  if (readStr.length > 0) {
+                                    readStr = readStr + ", " + key + "=" + model.get('attributes')["metrics"][key]
+                                  } else {
+                                    readStr = key + "=" + model.get('attributes')["metrics"][key]
+                                  }
+                                }
+
+                              })
+                                return readStr;
+                            }
                           }
                         })
                       }
