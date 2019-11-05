@@ -334,7 +334,8 @@ define(['require',
                     guidEntityMap = data && data.guidEntityMap,
                     makeNodeData = function(relationObj) {
                         var obj = $.extend(true, {
-                            label: relationObj.displayText.trunc(30),
+                            shape: "img",
+                            label: relationObj.displayText.trunc(18),
                             toolTipLabel: relationObj.displayText,
                             id: relationObj.guid,
                             isLineage: true,
@@ -555,6 +556,106 @@ define(['require',
                         .style("fill", edge.styleObj.stroke);
                     dagreD3.util.applyStyle(path, edge[type + "Style"]);
                 };
+                render.shapes().img = function circle(parent, bbox, node) {
+                    //var r = Math.max(bbox.width, bbox.height) / 2,
+                    if (node.id == that.guid) {
+                        var currentNode = true
+                    }
+                    var shapeSvg = parent.append('circle')
+                        .attr('fill', 'url(#img_' + node.id + ')')
+                        .attr('r', '24px')
+                        .attr('data-stroke', node.id)
+                        .attr('stroke-width', "2px")
+                        .attr("class", "nodeImage " + (currentNode ? "currentNode" : (node.isProcess ? "process" : "node")));
+                    if (currentNode) {
+                        shapeSvg.attr("stroke", "#fb4200")
+                    }
+                    if (node.isIncomplete === true) {
+                        parent.attr("class", "node isIncomplete show");
+                    } else {
+                        parent.attr("class", "node isIncomplete");
+                    }
+
+                    parent.insert("defs")
+                        .append("pattern")
+                        .attr("x", "0%")
+                        .attr("y", "0%")
+                        .attr("patternUnits", "objectBoundingBox")
+                        .attr("id", "img_" + node.id)
+                        .attr("width", "100%")
+                        .attr("height", "100%")
+                        .append('image')
+                        .attr("href", function(d) {
+                            var that = this;
+                            if (node) {
+                                var imageIconPath = Utils.getEntityIconPath({ entityData: node });
+
+                                var getImageData = function(options) {
+                                    var imagePath = options.imagePath,
+                                        ajaxOptions = {
+                                            "url": imagePath,
+                                            "method": "get",
+                                            "async": false,
+                                        }
+
+                                    if (platform.name !== "IE") {
+                                        ajaxOptions["mimeType"] = "text/plain; charset=x-user-defined";
+                                    }
+                                    shapeSvg.attr("data-iconpath", imagePath);
+                                    $.ajax(ajaxOptions)
+                                        .always(function(data, status, xhr) {
+                                            if (data.status == 404) {
+                                                getImageData({
+                                                    "imagePath": Utils.getEntityIconPath({ entityData: node, errorUrl: imagePath })
+                                                });
+                                            } else if (data) {
+                                                if (platform.name !== "IE") {
+                                                    imageObject[imageIconPath] = 'data:image/png;base64,' + LineageUtils.base64Encode({ "data": data });
+                                                } else {
+                                                    imageObject[imageIconPath] = imagePath;
+                                                }
+                                            }
+                                        });
+                                }
+                                if (_.keys(imageObject).indexOf(imageIconPath) === -1) {
+                                    getImageData({
+                                        "imagePath": imageIconPath
+                                    });
+                                }
+
+                                if (_.isUndefined(imageObject[imageIconPath])) {
+                                    // before img success
+                                    imageObject[imageIconPath] = [d3.select(that)];
+                                } else if (_.isArray(imageObject[imageIconPath])) {
+                                    // before img success
+                                    imageObject[imageIconPath].push(d3.select(that));
+                                } else {
+                                    d3.select(that).attr("xlink:href", imageObject[imageIconPath]);
+                                    if (imageIconPath !== shapeSvg.attr("data-iconpath")) {
+                                        shapeSvg.attr("data-iconpathorigin", imageIconPath);
+                                    }
+                                    return imageObject[imageIconPath];
+                                }
+                            }
+                        })
+                        .attr("x", "4")
+                        .attr("y", currentNode ? "3" : "4").attr("width", "40")
+                        .attr("height", "40");
+
+                    parent.insert("foreignObject")
+                        .attr("x", "-25")
+                        .attr("y", "-25")
+                        .attr("width", "50")
+                        .attr("height", "50")
+                        .append("xhtml:div")
+                        .insert("i")
+                        .attr("class", "fa fa-hourglass-half");
+
+                    node.intersect = function(point) {
+                        return dagreD3.intersect.circle(node, currentNode ? 24 : 21, point);
+                    };
+                    return shapeSvg;
+                };
                 // Set up an SVG group so that we can translate the final graph.
                 if (this.$("svg").find('.output').length) {
                     this.$("svg").find('.output').parent('g').remove();
@@ -622,7 +723,7 @@ define(['require',
                 // .on("wheel.zoom", null);
                 //change text postion
                 svgGroup.selectAll("g.nodes g.label")
-                    .attr("transform", "translate(0,0)");
+                    .attr("transform", "translate(2,-35)");
                 var waitForDoubleClick = null;
                 svgGroup.selectAll("g.nodes g.node")
                     .on('click', function(d) {

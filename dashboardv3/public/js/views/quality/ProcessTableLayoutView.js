@@ -117,11 +117,9 @@ define(['require',
                   skipDefaultError: true,
                   queryParam: queryParam,
                   success: function (data) {
-                    if (data.attributes) {
-                      _.each(data.entities, function (entity) {
-                        that.processCollection.push(entity);
-                      })
-                    }
+                  _.each(data.entities, function (entity) {
+                    that.processCollection.push(entity);
+                  })
 
                     that.renderTableLayoutView();
                     that.$('.fontLoader').hide();
@@ -186,9 +184,9 @@ define(['require',
                         editable: false,
                         formatter: _.extend({}, Backgrid.CellFormatter.prototype, {
                           fromRaw: function(rawValue, model) {
-                            if (model.get('attributes')["endTime"] && model.get(
+                            if (model.get('attributes')["time"] && model.get(
                                 'attributes')["durationMs"]) {
-                              return new Date(model.get('attributes')["endTime"]
+                              return new Date(model.get('attributes')["time"]
                                   - model.get('attributes')["durationMs"]);
                             } else {
                               return null;
@@ -216,13 +214,9 @@ define(['require',
                         editable: false,
                         formatter: _.extend({}, Backgrid.CellFormatter.prototype, {
                           fromRaw: function(rawValue, model) {
-                            if (model.get('attributes')["writeMetrics"]) {
-                              return model.get(
-                                  'attributes')["writeMetrics"]["numOutputRows"];
-                            } else if (model.get('attributes')["metrics"]) {
-                              return model.get(
-                                  'attributes')["metrics"]["write.numOutputRows"];
-                            } else {
+                              if (model.get('attributes')["numOutputRows"]) {
+                                  return model.get('attributes')["numOutputRows"];
+                              } else {
                               return null;
                             }
                           }
@@ -234,12 +228,8 @@ define(['require',
                         editable: false,
                         formatter: _.extend({}, Backgrid.CellFormatter.prototype, {
                           fromRaw: function(rawValue, model) {
-                            if (model.get('attributes')["writeMetrics"]) {
-                              return model.get(
-                                  'attributes')["writeMetrics"]["numOutputBytes"];
-                            } else if (model.get('attributes')["metrics"]) {
-                              return model.get(
-                                  'attributes')["metrics"]["write.numOutputBytes"];
+                            if (model.get('attributes')["numOutputBytes"]) {
+                                return model.get('attributes')["numOutputBytes"];
                             } else {
                               return null;
                             }
@@ -252,22 +242,7 @@ define(['require',
                         editable: false,
                         formatter: _.extend({}, Backgrid.CellFormatter.prototype, {
                           fromRaw: function(rawValue, model) {
-                            if(model.get('attributes')["readMetrics"])
-                            return JSON.stringify(model.get('attributes')["readMetrics"]);
-                            else {
-                              var readStr = ""
-                              _.each(_.keys(model.get('attributes')["metrics"]), function(key) {
-                                if (!(key.lastIndexOf("write", 0) === 0)) {
-                                  if (readStr.length > 0) {
-                                    readStr = readStr + ", " + key + "=" + model.get('attributes')["metrics"][key]
-                                  } else {
-                                    readStr = key + "=" + model.get('attributes')["metrics"][key]
-                                  }
-                                }
-
-                              })
-                                return readStr;
-                            }
+                            return null;
                           }
                         })
                       }
