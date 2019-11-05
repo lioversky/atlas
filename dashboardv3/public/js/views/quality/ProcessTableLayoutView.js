@@ -105,12 +105,9 @@ define(['require',
               var that = this;
               if("spark_process" == that.nodeInfo.typeName){
 
-                var sortBy = "endTime",
-                    query = "from spark_job where process.__guid='" + this.guid
-                        + "' select endTime,writeMetrics,readMetrics,id,durationMs orderby " + sortBy + " desc"
                 var queryParam = {
-                  query: query,
-                  limit: 20,
+                  processName: that.nodeInfo.name,
+                  limit: 25,
                   offset: 0
                 }
                 this.$('.fontLoader').show();
@@ -121,13 +118,8 @@ define(['require',
                   queryParam: queryParam,
                   success: function (data) {
                     if (data.attributes) {
-                      var names = data.attributes.name
-                      _.each(data.attributes.values, function (attrs) {
-                        var attributes = {}
-                        _.each(attrs, function (attr, index) {
-                          attributes[names[index]] = attr
-                        })
-                        that.processCollection.push({attributes: attributes});
+                      _.each(data.entities, function (entity) {
+                        that.processCollection.push(entity);
                       })
                     }
 

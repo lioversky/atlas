@@ -27,6 +27,8 @@ import org.apache.atlas.model.instance.AtlasEntity.AtlasEntitiesWithExtInfo;
  */
 public interface AtlasQualityService {
 
-  AtlasEntitiesWithExtInfo searchProcessQualities(String guid, String relation, String sortByAttribute, SortOrder sortOrder, boolean excludeDeletedEntities, int limit, int offset) throws AtlasBaseException;
+  AtlasEntitiesWithExtInfo searchProcessQualities(String processName, int limit, int offset) throws AtlasBaseException;
+
+  AtlasEntitiesWithExtInfo searchDatasetQualities(String datasetName, int limit, int offset) throws AtlasBaseException;
 
 }

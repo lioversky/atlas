@@ -54,22 +54,33 @@ public class QualityREST {
 
   @GET
   @Path("process")
-  public AtlasEntitiesWithExtInfo searchRelatedEntities(@QueryParam("guid") String guid,
-      @QueryParam("relation") String relation,
-      @QueryParam("sortBy") String sortByAttribute,
-      @QueryParam("sortOrder") SortOrder sortOrder,
-      @QueryParam("excludeDeletedEntities") boolean excludeDeletedEntities,
+  public AtlasEntitiesWithExtInfo searchProcessQualities(
+      @QueryParam("processName") String processName,
       @QueryParam("limit") int limit,
       @QueryParam("offset") int offset) throws AtlasBaseException {
-    Servlets.validateQueryParamLength("guid", guid);
-    Servlets.validateQueryParamLength("relation", relation);
-    Servlets.validateQueryParamLength("sortBy", sortByAttribute);
+    Servlets.validateQueryParamLength("processName", processName);
 
     AtlasPerfTracer perf = null;
 
     try {
-      return qualityService.searchProcessQualities(guid, relation, sortByAttribute, sortOrder,
-          excludeDeletedEntities, limit, offset);
+      return qualityService.searchProcessQualities(processName, limit, offset);
+    } finally {
+      AtlasPerfTracer.log(perf);
+    }
+  }
+
+  @GET
+  @Path("dataset")
+  public AtlasEntitiesWithExtInfo searchDatasetQualities(
+      @QueryParam("datasetName") String datasetName,
+      @QueryParam("limit") int limit,
+      @QueryParam("offset") int offset) throws AtlasBaseException {
+    Servlets.validateQueryParamLength("datasetName", datasetName);
+
+    AtlasPerfTracer perf = null;
+
+    try {
+      return qualityService.searchDatasetQualities(datasetName, limit, offset);
     } finally {
       AtlasPerfTracer.log(perf);
     }

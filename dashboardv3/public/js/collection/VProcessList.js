@@ -33,7 +33,7 @@ define(['require',
                 this.modelAttrName = 'results';
             },
             getProcess: function(options){
-                var url = UrlLinks.searchApiUrl("dsl") ;
+                var url = UrlLinks.qualityApiUrl() + "/process";
                 options = _.extend({
                     contentType: 'application/json',
                     dataType: 'json'
