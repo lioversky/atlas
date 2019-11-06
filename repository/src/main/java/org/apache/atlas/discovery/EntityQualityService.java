@@ -74,6 +74,29 @@ public class EntityQualityService implements AtlasQualityService {
     String database = configuration.getString(INFLUXDB_PROCESS_DATABASE, "process-quality");
     String queryStr = String
         .format("select * from \"%s\" order by time desc limit %d", processName, limit);
+    List<AtlasEntity> resultList = parseFromInfluxdb(database,queryStr);
+
+    return new AtlasEntitiesWithExtInfo(resultList);
+  }
+
+  @Override
+  public AtlasEntitiesWithExtInfo searchDatasetQualities(String datasetName, int limit, int offset)
+      throws AtlasBaseException {
+    String database = configuration.getString(INFLUXDB_DATASET_DATABASE, "data-quality");
+    String queryStr = String
+        .format(
+            "select * from \"%s\" "
+                + "where time> now() - 2d and "
+                + "(\"key\" ='Abnormal' or \"key\" = 'Empty' or \"key\" = 'Null') "
+                + "order by time desc limit %d",
+            datasetName, limit);
+    List<AtlasEntity> resultList = parseFromInfluxdb(database,queryStr);
+
+    return new AtlasEntitiesWithExtInfo(resultList);
+
+  }
+
+  private List<AtlasEntity> parseFromInfluxdb(String database, String queryStr) {
     List<AtlasEntity> resultList = new ArrayList<>();
     LOG.info("Select influxdb sql: {}", queryStr);
     try {
@@ -86,6 +109,7 @@ public class EntityQualityService implements AtlasQualityService {
           for (List<Object> list : values) {
             AtlasEntity atlasEntity = new AtlasEntity();
             for (int i = 0; i < columns.size(); i++) {
+              if(list.get(i)==null) break;
               Object value =
                   list.get(i) instanceof Number ? ((Number) list.get(i)).longValue() : list.get(i);
               atlasEntity.setAttribute(columns.get(i), value);
@@ -98,50 +122,7 @@ public class EntityQualityService implements AtlasQualityService {
     } catch (Exception e) {
       LOG.error("Select influxdb error.", e);
     }
-
-    return new AtlasEntitiesWithExtInfo(resultList);
-  }
-
-  @Override
-  public AtlasEntitiesWithExtInfo searchDatasetQualities(String datasetName, int limit, int offset)
-      throws AtlasBaseException {
-    String database = configuration.getString(INFLUXDB_DATASET_DATABASE, "data-quality");
-    String queryStr = String
-        .format(
-            "select sum(value) as value from \"%s\" "
-                + "where (\"key\" ='Abnormal' or \"key\" = 'Empty' or \"key\" = 'Null') group by time(1d,+16h),\"data_type\",\"dimension\" "
-                + "order by time desc limit %d",
-            datasetName, limit);
-    List<AtlasEntity> resultList = new ArrayList<>();
-    LOG.info("Select influxdb sql: {}", queryStr);
-    try {
-      QueryResult queryResult = influxDB
-          .query(new Query(queryStr, database), TimeUnit.MILLISECONDS);
-      for (Result result : queryResult.getResults()) {
-        for (Series series : result.getSeries()) {
-          Map<String, String> tags = series.getTags();
-          List<String> columns = series.getColumns();
-          List<List<Object>> values = series.getValues();
-          for (List<Object> list : values) {
-            Map<String, Object> resultMap = new HashMap<>();
-
-            for (int i = 0; i < columns.size(); i++) {
-              if(list.get(i)==null) break;
-              Object value =
-                  list.get(i) instanceof Number ? ((Number) list.get(i)).longValue() : list.get(i);
-              resultMap.put(columns.get(i), value);
-              resultMap.putAll(tags);
-            }
-            resultList.add(new AtlasEntity("", resultMap));
-          }
-        }
-      }
-    } catch (Exception e) {
-      LOG.error("Select influxdb error.", e);
-    }
-
-    return new AtlasEntitiesWithExtInfo(resultList);
-
+    return resultList;
   }
 
 }
