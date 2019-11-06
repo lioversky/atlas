@@ -86,7 +86,7 @@
           "cardinality": "SINGLE",
           "isIndexable": true,
           "isOptional": true,
-          "isUnique": true
+          "isUnique": false
         },
         {
           "name": "readMetrics",
@@ -110,7 +110,15 @@
           "cardinality": "SINGLE",
           "isIndexable": true,
           "isOptional": false,
-          "isUnique": true
+          "isUnique": false
+        },
+        {
+          "name": "jobName",
+          "typeName": "string",
+          "cardinality": "SINGLE",
+          "isIndexable": true,
+          "isOptional": true,
+          "isUnique": false
         },
         {
           "name": "operations",
@@ -144,6 +152,22 @@
           "typeName": "array<spark_endpoint_dataset>",
           "cardinality": "LIST",
           "constraints": [],
+          "isIndexable": false,
+          "isOptional": true,
+          "isUnique": false
+        },
+        {
+          "name": "durationMs",
+          "typeName": "long",
+          "cardinality": "SINGLE",
+          "isIndexable": false,
+          "isOptional": true,
+          "isUnique": false
+        },
+        {
+          "name": "endTime",
+          "typeName": "date",
+          "cardinality": "SINGLE",
           "isIndexable": false,
           "isOptional": true,
           "isUnique": false
