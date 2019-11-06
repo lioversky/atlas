@@ -46,7 +46,8 @@ define(['require',
                 RProfileLayoutView: "#r_profileLayoutView",
                 RRelationshipLayoutView: "#r_relationshipLayoutView",
                 REntityUserDefineView: "#r_entityUserDefineView",
-                REntityLabelDefineView: "#r_entityLabelDefineView"
+                REntityLabelDefineView: "#r_entityLabelDefineView",
+                RQualityLayoutView:"#r_qualityLayoutView"
             },
             /** ui selector cache */
             ui: {
@@ -310,6 +311,22 @@ define(['require',
                                 updateTabState: true
                             });
                         }
+
+                        if (!isProcess) {
+                            this.$('.qualityTab').show();
+                            this.renderQualityLayoutView(_.extend(obj, {
+                                fetchCollection: this.fetchCollection.bind(this),
+                            }));
+                        } else if (this.value && this.value.tabActive == "quality") {
+                            Utils.setUrl({
+                                url: Utils.getUrlState.getQueryUrl().queyParams[0],
+                                urlParams: { tabActive: 'properties' },
+                                mergeBrowserUrl: false,
+                                trigger: true,
+                                updateTabState: true
+                            });
+                        }
+
                     }
 
 
@@ -552,6 +569,12 @@ define(['require',
                 var that = this;
                 require(['views/profile/ProfileLayoutView'], function(ProfileLayoutView) {
                     that.RProfileLayoutView.show(new ProfileLayoutView(obj));
+                });
+            },
+            renderQualityLayoutView: function(obj) {
+                var that = this;
+                require(['views/quality/QualityLayoutView'], function(QualityLayoutView) {
+                    that.RQualityLayoutView.show(new QualityLayoutView(obj));
                 });
             }
         });
