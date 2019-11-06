@@ -126,6 +126,7 @@ public class EntityQualityService implements AtlasQualityService {
             Map<String, Object> resultMap = new HashMap<>();
 
             for (int i = 0; i < columns.size(); i++) {
+              if(list.get(i)==null) break;
               Object value =
                   list.get(i) instanceof Number ? ((Number) list.get(i)).longValue() : list.get(i);
               resultMap.put(columns.get(i), value);
