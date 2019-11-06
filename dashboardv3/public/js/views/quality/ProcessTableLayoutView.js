@@ -117,16 +117,17 @@ define(['require',
                   skipDefaultError: true,
                   queryParam: queryParam,
                   success: function (data) {
-                  _.each(data.entities, function (entity) {
-                    that.processCollection.push(entity);
-                  })
-
-                    that.renderTableLayoutView();
-                    that.$('.fontLoader').hide();
-                    that.$('.tableOverlay').hide();
+                    if (data.entities) {
+                      _.each(data.entities, function (entity) {
+                        that.processCollection.push(entity);
+                      })
+                    }
                   }
                 })
               }
+              that.renderTableLayoutView();
+              that.$('.fontLoader').hide();
+              that.$('.tableOverlay').hide();
 
             },
             showLoader: function() {

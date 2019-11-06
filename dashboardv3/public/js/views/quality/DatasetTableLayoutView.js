@@ -19,7 +19,7 @@
 define(['require',
     'backbone',
     'hbs!tmpl/quality/DatasetTableLayoutView_tmpl',
-    'collection/VEntityList',
+    'collection/VDatasetList',
     'modules/Modal',
     'utils/Utils',
     'utils/CommonViewFunction',
@@ -27,7 +27,7 @@ define(['require',
     'utils/Globals',
     'utils/Enums',
     'utils/UrlLinks'
-], function(require, Backbone, DatasetTableLayoutViewTmpl, VEntityList, Modal, Utils, CommonViewFunction, Messages, Globals, Enums, UrlLinks) {
+], function(require, Backbone, DatasetTableLayoutViewTmpl, VDatasetList, Modal, Utils, CommonViewFunction, Messages, Globals, Enums, UrlLinks) {
     'use strict';
 
     var DatasetTableLayoutView = Backbone.Marionette.LayoutView.extend(
@@ -60,11 +60,11 @@ define(['require',
              */
             initialize: function(options) {
                 _.extend(this, _.pick(options, 'guid', 'nodeInfo', 'fetchCollection'));
-                this.datasetCollection = new VEntityList();
+                this.datasetCollection = new VDatasetList();
                 this.datasetTableAttribute = ["id", "startTime", "duration",
                     "numOutputRows", "numOutputBytes", "readMetrics"];
-                this.datasetCollection.url = UrlLinks.entityCollectionaudit(this.guid);
-                this.datasetCollection.modelAttrName = "events";
+                this.datasetCollection.url = UrlLinks.qualityApiUrl() + "/dataset";
+                this.datasetCollection.modelAttrName = "entities";
                 this.commonTableOptions = {
                     collection: this.datasetCollection,
                     includeFilter: false,
@@ -109,17 +109,28 @@ define(['require',
                 var that = this;
                 this.$('.fontLoader').show();
                 this.$('.tableOverlay').show();
+                var qualifiedName = that.nodeInfo.qualifiedName,
+                 datasetName = qualifiedName.substring(0, qualifiedName.lastIndexOf("@"))
+              var queryParam = {
+                datasetName: datasetName,
+                limit: 25,
+                offset: 0
+              }
+              this.datasetCollection.getDataset({
+                skipDefaultError: true,
+                queryParam: queryParam,
+                success: function (data) {
+                  if (data.entities) {
+                    _.each(data.entities, function (entity) {
+                      that.datasetCollection.push(entity);
+                    })
+                  }
+                  that.renderTableLayoutView();
+                  that.$('.fontLoader').hide();
+                  that.$('.tableOverlay').hide();
+                }
+              })
 
-                this.datasetCollection.fetch({
-                    success: function() {
-
-                        that.datasetCollection.sort();
-                        that.renderTableLayoutView();
-                        that.$('.fontLoader').hide();
-                        that.$('.tableOverlay').hide();
-                    },
-                    silent: true
-                });
             },
             showLoader: function() {
                 this.$('.fontLoader').show();
@@ -160,35 +171,78 @@ define(['require',
             getDatasetTableColumns: function() {
                 var that = this,
                     col = {
-                        user: {
-                            label: "Users",
-                            cell: "html",
-                            editable: false,
-                        },
-                        timestamp: {
-                            label: "Timestamp",
-                            cell: "html",
-                            editable: false,
-                            formatter: _.extend({}, Backgrid.CellFormatter.prototype, {
-                                fromRaw: function(rawValue, model) {
-                                    return new Date(rawValue);
-                                }
+                      time: {
+                        label: "EndTime",
+                        cell: "html",
+                        editable: false,
+                        formatter: _.extend({},
+                            Backgrid.CellFormatter.prototype, {
+                              fromRaw: function (rawValue, model) {
+                                return new Date(model.get('attributes')["time"]).toLocaleString();
+                              }
                             })
-                        },
-                        action: {
-                            label: "Actions",
-                            cell: "html",
-                            editable: false,
-                            formatter: _.extend({}, Backgrid.CellFormatter.prototype, {
-                                fromRaw: function(rawValue, model) {
-                                    if (Enums.auditAction[rawValue]) {
-                                        return Enums.auditAction[rawValue];
-                                    } else {
-                                        return rawValue;
-                                    }
-                                }
+                      },
+                      data_type: {
+                        label: "DataType",
+                        cell: "html",
+                        editable: false,
+                        formatter: _.extend({},
+                            Backgrid.CellFormatter.prototype, {
+                              fromRaw: function (rawValue, model) {
+                                return model.get('attributes')["data_type"];
+                              }
                             })
-                        }
+                      },
+                      dimension: {
+                        label: "Dimension",
+                        cell: "html",
+                        editable: false,
+                        formatter: _.extend({},
+                            Backgrid.CellFormatter.prototype, {
+                              fromRaw: function (rawValue, model) {
+                                return model.get('attributes')["dimension"];
+                              }
+                            })
+                      },
+                      key: {
+                        label: "Key",
+                        cell: "html",
+                        editable: false,
+                        formatter: _.extend({},
+                            Backgrid.CellFormatter.prototype, {
+                              fromRaw: function (rawValue, model) {
+                                return model.get('attributes')["key"];
+                              }
+                            })
+                      },
+                      value: {
+                        label: "Value",
+                        cell: "html",
+                        editable: false,
+                        formatter: _.extend({},
+                            Backgrid.CellFormatter.prototype, {
+                              fromRaw: function (rawValue, model) {
+                                return model.get('attributes')["value"];
+                              }
+                            })
+                      },
+                      percent: {
+                        label: "Percent",
+                        cell: "html",
+                        editable: false,
+                        formatter: _.extend({},
+                            Backgrid.CellFormatter.prototype, {
+                              fromRaw: function (rawValue, model) {
+                                if (model.get('attributes')["total"] && model.get('attributes')["total"] > 0) {
+                                  return (model.get('attributes')["value"]
+                                      / model.get('attributes')["value"] * 100)
+                                      + "%";
+                                } else {
+                                  return null;
+                                }
+                              }
+                            })
+                      }
                     }
                 return this.datasetCollection.constructor.getTableCols(col, this.datasetCollection);
             }
