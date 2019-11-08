@@ -109,7 +109,7 @@ public class EntityQualityService implements AtlasQualityService {
           for (List<Object> list : values) {
             AtlasEntity atlasEntity = new AtlasEntity();
             for (int i = 0; i < columns.size(); i++) {
-              if(list.get(i)==null) break;
+              if(list.get(i)==null) continue;
               Object value =
                   list.get(i) instanceof Number ? ((Number) list.get(i)).longValue() : list.get(i);
               atlasEntity.setAttribute(columns.get(i), value);

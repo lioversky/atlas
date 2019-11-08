@@ -235,7 +235,7 @@ define(['require',
                               fromRaw: function (rawValue, model) {
                                 if (model.get('attributes')["total"] && model.get('attributes')["total"] > 0) {
                                   return (model.get('attributes')["value"]
-                                      / model.get('attributes')["value"] * 100)
+                                      / model.get('attributes')["total"] * 100)
                                       + "%";
                                 } else {
                                   return null;
