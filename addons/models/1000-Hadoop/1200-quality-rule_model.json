@@ -1,0 +1,296 @@
+{
+  "enumDefs": [],
+  "structDefs": [],
+  "classificationDefs": [],
+  "entityDefs": [
+    {
+      "name": "quality_rule",
+      "superTypes": [
+        "DataSet"
+      ],
+      "serviceType": "quality",
+      "typeVersion": "1.0",
+      "attributeDefs": [
+        {
+          "name": "dataset",
+          "typeName": "string",
+          "cardinality": "SINGLE",
+          "isIndexable": true,
+          "isOptional": false,
+          "isUnique": true
+        },
+        {
+          "name": "hive_table",
+          "typeName": "hive_table",
+          "cardinality": "SINGLE",
+          "isIndexable": false,
+          "isOptional": true,
+          "isUnique": false
+        },
+        {
+          "name": "fields",
+          "typeName": "array<field_rule>",
+          "cardinality": "SINGLE",
+          "isIndexable": false,
+          "isOptional": true,
+          "isUnique": false
+        },
+        {
+          "name": "condition",
+          "typeName": "string",
+          "cardinality": "SINGLE",
+          "isIndexable": false,
+          "isOptional": true,
+          "isUnique": false
+        }
+      ],
+      "options": {
+        "schemaElementsAttribute": "fields"
+      }
+    },
+    {
+      "name": "field_rule",
+      "superTypes": [
+        "DataSet"
+      ],
+      "serviceType": "quality",
+      "typeVersion": "1.0",
+      "attributeDefs": [
+        {
+          "name": "column",
+          "typeName": "hive_column",
+          "cardinality": "SINGLE",
+          "isIndexable": false,
+          "isOptional": true,
+          "isUnique": false
+        },
+        {
+          "name": "expr",
+          "typeName": "string",
+          "cardinality": "SINGLE",
+          "isIndexable": false,
+          "isOptional": true,
+          "isUnique": false
+        },
+        {
+          "name": "dataType",
+          "typeName": "string",
+          "cardinality": "SINGLE",
+          "isIndexable": false,
+          "isOptional": true,
+          "isUnique": false
+        }
+      ],
+      "options": {
+        "schemaAttributes": "[\"name\", \"dataType\", \"expr\"]"
+      }
+    },
+    {
+      "name": "nominal_field_rule",
+      "superTypes": [
+        "field_rule"
+      ],
+      "serviceType": "quality",
+      "typeVersion": "1.0",
+      "attributeDefs": [
+        {
+          "name": "nullable",
+          "typeName": "boolean",
+          "cardinality": "SINGLE",
+          "isIndexable": false,
+          "isOptional": true,
+          "isUnique": false
+        }
+      ]
+    },
+    {
+      "name": "notblank_field_rule",
+      "superTypes": [
+        "field_rule"
+      ],
+      "serviceType": "quality",
+      "typeVersion": "1.0",
+      "attributeDefs": [
+      ]
+    },
+    {
+      "name": "nominal_notblank_field_rule",
+      "superTypes": [
+        "field_rule"
+      ],
+      "serviceType": "quality",
+      "typeVersion": "1.0",
+      "attributeDefs": [
+      ]
+    },
+    {
+      "name": "enumerate_field_rule",
+      "superTypes": [
+        "field_rule"
+      ],
+      "serviceType": "quality",
+      "typeVersion": "1.0",
+      "attributeDefs": [
+        {
+          "name": "otherName",
+          "typeName": "string",
+          "cardinality": "SINGLE",
+          "isIndexable": false,
+          "isOptional": true,
+          "isUnique": false
+        },
+        {
+          "name": "enums",
+          "typeName": "array<string>",
+          "cardinality": "SINGLE",
+          "isIndexable": false,
+          "isOptional": false,
+          "isUnique": false
+        },
+        {
+          "name": "nullable",
+          "typeName": "boolean",
+          "cardinality": "SINGLE",
+          "isIndexable": false,
+          "isOptional": true,
+          "isUnique": false
+        }
+      ]
+    },
+    {
+      "name": "numeric_field_rule",
+      "superTypes": [
+        "field_rule"
+      ],
+      "serviceType": "quality",
+      "typeVersion": "1.0",
+      "attributeDefs": [
+        {
+          "name": "verboseCase",
+          "typeName": "string",
+          "cardinality": "SINGLE",
+          "isIndexable": false,
+          "isOptional": true,
+          "isUnique": false
+        },
+        {
+          "name": "abnormalCondition",
+          "typeName": "string",
+          "cardinality": "SINGLE",
+          "isIndexable": false,
+          "isOptional": true,
+          "isUnique": false
+        },
+        {
+          "name": "percentile",
+          "typeName": "boolean",
+          "cardinality": "SINGLE",
+          "isIndexable": false,
+          "isOptional": true,
+          "isUnique": false
+        },
+        {
+          "name": "round",
+          "typeName": "int",
+          "cardinality": "SINGLE",
+          "isIndexable": false,
+          "isOptional": true,
+          "isUnique": false
+        }
+      ]
+    },
+    {
+      "name": "numeric_percentile_field_rule",
+      "superTypes": [
+        "numeric_field_rule"
+      ],
+      "serviceType": "quality",
+      "typeVersion": "1.0",
+      "attributeDefs": [
+        {
+          "name": "round",
+          "typeName": "int",
+          "cardinality": "SINGLE",
+          "isIndexable": false,
+          "isOptional": true,
+          "isUnique": false
+        }
+      ]
+    },
+    {
+      "name": "exclusion_field_rule",
+      "superTypes": [
+        "field_rule"
+      ],
+      "serviceType": "quality",
+      "typeVersion": "1.0",
+      "attributeDefs": [
+      ]
+    }
+  ],
+  "relationshipDefs": [
+    {
+      "name": "quality_rule_fields",
+      "serviceType": "quality",
+      "typeVersion": "1.0",
+      "relationshipCategory": "COMPOSITION",
+      "endDef1": {
+        "type": "quality_rule",
+        "name": "fields",
+        "isContainer": true,
+        "cardinality": "SET",
+        "isLegacyAttribute": true
+      },
+      "endDef2": {
+        "type": "field_rule",
+        "name": "rule",
+        "isContainer": false,
+        "cardinality": "SINGLE",
+        "isLegacyAttribute": true
+      },
+      "propagateTags": "NONE"
+    },
+    {
+      "name": "hive_table_quality_rule",
+      "serviceType": "quality",
+      "typeVersion": "1.0",
+      "relationshipCategory": "COMPOSITION",
+      "endDef1": {
+        "type": "quality_rule",
+        "name": "hive_table",
+        "isContainer": true,
+        "cardinality": "SINGLE",
+        "isLegacyAttribute": true
+      },
+      "endDef2": {
+        "type": "hive_table",
+        "name": "quality_rule",
+        "isContainer": false,
+        "cardinality": "SINGLE",
+        "isLegacyAttribute": true
+      },
+      "propagateTags": "NONE"
+    },
+    {
+      "name": "hive_column_quality_rule",
+      "serviceType": "quality",
+      "typeVersion": "1.0",
+      "relationshipCategory": "COMPOSITION",
+      "endDef1": {
+        "type": "field_rule",
+        "name": "column",
+        "isContainer": true,
+        "cardinality": "SINGLE",
+        "isLegacyAttribute": true
+      },
+      "endDef2": {
+        "type": "hive_column",
+        "name": "field_rule",
+        "isContainer": false,
+        "cardinality": "SINGLE",
+        "isLegacyAttribute": true
+      },
+      "propagateTags": "NONE"
+    }
+  ]
+}
