@@ -79,10 +79,18 @@
           "isIndexable": false,
           "isOptional": true,
           "isUnique": false
+        },
+        {
+          "name": "regexRule",
+          "typeName": "string",
+          "cardinality": "SINGLE",
+          "isIndexable": false,
+          "isOptional": true,
+          "isUnique": false
         }
       ],
       "options": {
-        "schemaAttributes": "[\"name\", \"dataType\", \"expr\"]"
+        "schemaAttributes": "[\"name\", \"dataType\"]"
       }
     },
     {
